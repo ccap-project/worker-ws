@@ -8,20 +8,53 @@ import (
 )
 
 type Provider struct {
-  Name        string `json: "name"`
-  Region      string `json: "region"`
+  Name        string `json:"name"`
+  Region      string `json:"region"`
+  Tenantname  string `json:"tenantname"`
+  Username    string `json:"username"`
+  Password    string `json:"password"`
+  AuthUrl     string `json:"auth_url"`
 }
 
 type Hostgroup struct {
-  Name          string `json: "name"`
-  Flavor        string `json: "flavor"`
-  Image         string `json: "image"`
-  Count         string `json: "count"`
+  Name          string `json:"name"`
+  Flavor        string `json:"flavor"`
+  Image         string `json:"image"`
+  Count         string `json:"count"`
+  Network       string `json:"network"`
+}
+
+type Network struct {
+  Name          string `json:"name"`
+  AdminState    string `json:"admin_state"`
+}
+
+type Router struct {
+  Name          string `json:"name"`
+  AdminState    string `json:"admin_state"`
+}
+
+type RouterInterface struct {
+  Name          string `json:"name"`
+  Router        string `json:"router"`
+  Subnet        string `json:"subnet"`
+}
+
+type Subnet struct {
+  Name          string `json:"name"`
+  Cidr          string `json:"cidr"`
+  Network       string `json:"network"`
+  IPVersion     string `json:"ip_version"`
+  AdminState    string `json:"admin_state"`
 }
 
 type Config struct {
-  Provider *Provider      `json: "provider"`
-  Hostgroups []*Hostgroup  `json: "hostgroups"`
+  Provider          *Provider           `json:"provider"`
+  Hostgroups        []*Hostgroup        `json:"hostgroups"`
+  Networks          []*Network          `json:"networks"`
+  Subnets           []*Subnet           `json:"subnets"`
+  Routers           []*Router           `json:"routers"`
+  RoutersInterfaces []*RouterInterface  `json:"routers_interfaces"`
 }
 
 //type Resource struct {
@@ -74,7 +107,6 @@ func ReadJson(configFilePath string) *Config {
   }
 
   //config.Log = log.New(os.Stderr, "roles-ws: ", log.Llongfile)
-
   fmt.Printf("%+v", config)
   return &config
 }

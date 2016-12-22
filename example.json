@@ -1,10 +1,28 @@
 {
   "provider": {
     "name": "openstack",
-    "region": "us-west"
+    "region": "br-sp1",
+    "tenantname": "uolcloudBiancalana",
+    "username": "uolcloudBiancalana",
+    "password": "abcd",
+    "auth_url": "https://keystone.br-sp1.openstack.uolcloud.com.br:5000/v2.0"
   },
+  "routers": [
+    {"name": "router1", "admin_state": "down"}
+  ],
+  "routers_interfaces": [
+    {"name": "int-net-be", "router": "router1", "subnet": "subnet-be"}
+  ],
+  "networks": [
+    {"name": "net-web", "admin_state": "up" },
+    {"name": "net-be" }
+  ],
+  "subnets": [
+    {"name": "subnet-web", "admin_state": "up", "network": "net-web", "cidr": "192.168.200.0/24" },
+    {"name": "subnet-be", "network": "net-be", "cidr": "192.168.100.0/24" }
+  ],
   "hostgroups": [
-    {"name": "graphite-web", "image": "ubuntu", "flavor": "m1.large", "count": "3" },
-    {"name": "graphite-be", "image": "ubuntu", "flavor": "m1.xlarge", "count": "10" }
+    {"name": "graphite-web", "image": "ubuntu", "flavor": "m1.large", "count": "3", "network": "net-web" },
+    {"name": "graphite-be", "image": "ubuntu", "flavor": "m1.xlarge", "count": "10", "network": "net-be" }
   ]
 }

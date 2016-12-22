@@ -19,10 +19,6 @@ import (
 
 func main() {
 
-funcs := map[string]func() {
-	"aws_hostgroup": aws.Hostgroup,
-}
-
   //var ( SystemConfig *config.CellMap )
   //var ( SystemConfig *config.Config )
 

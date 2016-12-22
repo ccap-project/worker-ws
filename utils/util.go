@@ -7,6 +7,7 @@ import "text/template"
 func Template (tmpl string, data interface{}) (string) {
 
   var b bytes.Buffer
+
   f := bufio.NewWriter(&b)
   //defer f.Close()
 
