@@ -18,7 +18,12 @@ import (
 
 func main() {
 
+funcs := map[string]func() {
+	"aws_hostgroup": aws.Hostgroup,
+}
+
   //var ( SystemConfig *config.CellMap )
+  //var ( SystemConfig *config.Config )
 
   SystemConfig := config.ReadJson("example.json")
 
@@ -39,11 +44,15 @@ func main() {
       }
   }
   */
-  switch SystemConfig.Provider.Name {
-  case "aws":
-    aws.
 
-  }
-  SystemConfig.Hostgroup.Marshall()
+
+  SystemConfig.Provider.Name.
+  funcs["aws_hostgroup"](SystemConfig)
+
+  //switch SystemConfig.Provider.Name {
+  //case "aws":
+  //  aws.
+  //}
+  //SystemConfig.Hostgroup.Marshall()
   //fmt.Println(SystemConfig)
 }

@@ -1,9 +1,9 @@
 {
-  "Provider": {
-    "Name": "aws",
-    "Region": "us-west"
+  "provider": {
+    "name": "aws",
+    "region": "us-west"
   },
-  "Hostgroups": [
-    {"Flavor": "m1.large", "Count": "3" }
+  "hostgroups": [
+    {"name": "graphite-web", "flavor": "m1.large", "count": "3" }
   ]
 }
