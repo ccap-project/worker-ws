@@ -1,0 +1,9 @@
+{
+  "Provider": {
+    "Name": "aws",
+    "Region": "us-west"
+  },
+  "Hostgroups": [
+    {"Flavor": "m1.large", "Count": "3" }
+  ]
+}
