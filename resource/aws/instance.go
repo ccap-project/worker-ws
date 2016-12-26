@@ -1,18 +1,28 @@
 package aws
 
-//import "fmt"
-import "os"
+import "fmt"
 import "text/template"
+import "os"
+
 import "../../config/"
 
-const instance_templ = `resource "aws_instance" "{{.name}}" {
-    instance_type = "{{.flavor}}"
+const instance_resource_tmpl = `
+resource "aws_instance" "{{.Name}}" {
+  name = "{{.Name}}-${count.index}",
+  ami = "{{.Image}}"
+  instance_type = "{{.Flavor}}"
+  count = "{{.Count}}"
 }
 `
 
-//func (h *hostgroup) Marshall() {
-func Hostgroup(SystemConfig *config.Config) {
-  t := template.New("Person template")
-  t, _ = t.Parse(instance_templ)
-  t.Execute(os.Stdout, SystemConfig.Hostgroup[0])
+func instance (config *config.Config) {
+
+  for i, h := range config.Hostgroups {
+    fmt.Printf("%d %+v", i, h)
+
+    t := template.New("instance")
+    t,_ = t.Parse(instance_resource_tmpl)
+    t.Execute(os.Stdout, h)
+  }
+  //fmt.Println("Here 2 !")
 }

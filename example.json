@@ -1,9 +1,10 @@
 {
   "provider": {
-    "name": "aws",
+    "name": "openstack",
     "region": "us-west"
   },
   "hostgroups": [
-    {"name": "graphite-web", "flavor": "m1.large", "count": "3" }
+    {"name": "graphite-web", "image": "ubuntu", "flavor": "m1.large", "count": "3" },
+    {"name": "graphite-be", "image": "ubuntu", "flavor": "m1.xlarge", "count": "10" }
   ]
 }

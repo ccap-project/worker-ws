@@ -7,26 +7,21 @@ import (
   "os"
 )
 
-type CellMap map[string]interface{}
-
-//type CellMap struct {
-//  Resource map[string]interface{}
-//}
-
-
 type Provider struct {
-  Name        string
-  Region      string
+  Name        string `json: "name"`
+  Region      string `json: "region"`
 }
 
 type Hostgroup struct {
-  Flavor       string
-  counter      int
+  Name          string `json: "name"`
+  Flavor        string `json: "flavor"`
+  Image         string `json: "image"`
+  Count         string `json: "count"`
 }
 
 type Config struct {
-  Provider *Provider
-  Hostgroup []*Hostgroup
+  Provider *Provider      `json: "provider"`
+  Hostgroups []*Hostgroup  `json: "hostgroups"`
 }
 
 //type Resource struct {
