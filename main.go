@@ -10,6 +10,7 @@ import (
 
   //"./role/"
   "./config/"
+  "./ansible"
   "./resource/aws"
   "./resource/openstack"
 
@@ -28,6 +29,7 @@ func main() {
   case "aws":
     aws.Serializer(SystemConfig)
   case "openstack":
+    ansible.Serializer(SystemConfig)
     openstack.Serializer(SystemConfig)
   }
   //SystemConfig.Hostgroup.Marshall()

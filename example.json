@@ -21,8 +21,22 @@
     {"name": "subnet-web", "admin_state": "up", "network": "net-web", "cidr": "192.168.200.0/24" },
     {"name": "subnet-be", "network": "net-be", "cidr": "192.168.100.0/24" }
   ],
+  "hosts": [
+    {"name": "graphite-web1", "options": [
+      {"ansible_host": "192.168.200.2"}
+      ]
+    },
+    {"name": "graphite-web2", "options": [
+      {"ansible_host": "192.168.200.3"}
+      ]
+    },
+    {"name": "graphite-be1", "options": [
+      {"ansible_host": "192.168.100.2"}
+      ]
+    }
+  ],
   "hostgroups": [
-    {"name": "graphite-web", "image": "ubuntu", "flavor": "m1.large", "count": "3", "network": "net-web" },
+    {"name": "graphite-web", "image": "ubuntu", "flavor": "m1.large", "count": "3", "network": "net-web", "vars": [{"graphite_web_port": "8080"}] },
     {"name": "graphite-be", "image": "ubuntu", "flavor": "m1.xlarge", "count": "10", "network": "net-be" }
   ]
 }

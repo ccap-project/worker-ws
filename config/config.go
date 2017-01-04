@@ -16,12 +16,18 @@ type Provider struct {
   AuthUrl     string `json:"auth_url"`
 }
 
+type Host struct {
+  Name          string        `json:"name"`
+  Options       []map[string]string `json:"options"`
+}
+
 type Hostgroup struct {
   Name          string `json:"name"`
   Flavor        string `json:"flavor"`
   Image         string `json:"image"`
   Count         string `json:"count"`
   Network       string `json:"network"`
+  Vars          []map[string]string  `json:"vars"`
 }
 
 type Network struct {
@@ -50,6 +56,7 @@ type Subnet struct {
 
 type Config struct {
   Provider          *Provider           `json:"provider"`
+  Hosts             []*Host            `json:"hosts"`
   Hostgroups        []*Hostgroup        `json:"hostgroups"`
   Networks          []*Network          `json:"networks"`
   Subnets           []*Subnet           `json:"subnets"`
