@@ -10,6 +10,8 @@ func Serializer (config *config.Config) {
   output = append(output, hosts(config)...)
   output = append(output, hostgroups(config)...)
   output = append(output, group_vars(config)...)
+  output = append(output, playbook(config)...)
+  output = append(output, requirements(config)...)
 
   /*
   output = append(output, router(config)...)

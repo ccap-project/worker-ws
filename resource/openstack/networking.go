@@ -2,7 +2,7 @@ package openstack
 
 import "../../config/"
 import "../../utils"
-//import "fmt"
+import "fmt"
 
 const network_resource_tmpl = `
 resource "openstack_networking_network_v2" "{{.Name}}" {
@@ -50,6 +50,7 @@ func router(config *config.Config) ([]string) {
   var routers []string
 
   for _, router := range config.Routers {
+    fmt.Printf("%v", router)
     z := utils.Template(router_resource_tmpl, router)
     routers = append(routers, z)
   }

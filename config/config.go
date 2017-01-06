@@ -21,6 +21,12 @@ type Host struct {
   Options       []map[string]string `json:"options"`
 }
 
+type Role struct {
+  Name    string `json:"name"`
+  Source  string `json:"src"`
+  Version string `json:"version"`
+}
+
 type Hostgroup struct {
   Name          string `json:"name"`
   Flavor        string `json:"flavor"`
@@ -28,6 +34,7 @@ type Hostgroup struct {
   Count         string `json:"count"`
   Network       string `json:"network"`
   Vars          []map[string]string  `json:"vars"`
+  Roles         []*Role  `json:"roles"`
 }
 
 type Network struct {

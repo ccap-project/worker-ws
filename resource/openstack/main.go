@@ -18,7 +18,7 @@ func Serializer (config *config.Config) {
   output := make([]string, 1)
 
   output = append(output, provider(config))
-  output = append(output, router(config)...)
+  //output = append(output, router(config)...)
   output = append(output, router_interface(config)...)
   output = append(output, network(config)...)
   output = append(output, subnet(config)...)
