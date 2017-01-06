@@ -1,5 +1,6 @@
 package ansible
 
+import "bytes"
 import "fmt"
 //import "strings"
 //import "text/template"
@@ -8,25 +9,25 @@ import "fmt"
 import "../config/"
 //import "../utils"
 
-func hosts (config *config.Config) ([]string) {
+func hosts (config *config.Config) (*bytes.Buffer) {
 
-  var hosts []string
+  var hosts bytes.Buffer
 
   for _,host := range config.Hosts {
 
-    host_line := host.Name
+    fmt.Fprintf(&hosts, "%s", host.Name)
 
     for _,opt := range host.Options {
       for k,v := range opt {
-        host_line = fmt.Sprintf("%s %s=%s", host_line, k, v)
+        fmt.Fprintf(&hosts, " %s=%s", k,v)
+        //host_line = fmt.Sprintf("%s %s=%s", host_line, k, v)
       }
     }
-
-    hosts = append(hosts, host_line)
+    fmt.Fprintf(&hosts, "\n")
   }
-  hosts = append(hosts, "")
+  fmt.Fprintf(&hosts, "\n")
 
-  return(hosts)
+  return(&bytes.Buffer)
 }
 
 func hostgroups (config *config.Config) ([]string) {

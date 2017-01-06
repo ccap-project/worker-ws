@@ -30,8 +30,6 @@ func main() {
     aws.Serializer(SystemConfig)
   case "openstack":
     ansible.Serializer(SystemConfig)
-    openstack.Serializer(SystemConfig)
+    //openstack.Serializer(SystemConfig)
   }
-  //SystemConfig.Hostgroup.Marshall()
-  //fmt.Println(SystemConfig)
 }

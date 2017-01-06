@@ -26,5 +26,7 @@ func playbook (config *config.Config) ([]string) {
     }
   }
 
+  WriteFile("playbook.yml", plays)
+
   return(plays)
 }
