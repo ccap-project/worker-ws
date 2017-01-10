@@ -27,38 +27,35 @@ func hosts (config *config.Config) (*bytes.Buffer) {
   }
   fmt.Fprintf(&hosts, "\n")
 
-  return(&bytes.Buffer)
+  return(&hosts)
 }
 
-func hostgroups (config *config.Config) ([]string) {
+func hostgroups (config *config.Config) (*bytes.Buffer) {
 
-  var hostgroups []string
+  var hostgroups bytes.Buffer
 
   for _,hostgroup := range config.Hostgroups {
-    hostgroups = append(hostgroups, fmt.Sprintf("[%s]", hostgroup.Name))
-    hostgroups = append(hostgroups, fmt.Sprintf("%s[1:%s]", hostgroup.Name, hostgroup.Count))
-
-    hostgroups = append(hostgroups, fmt.Sprintf("\n"))
+    fmt.Fprintf(&hostgroups, "[%s]\n", hostgroup.Name)
+    fmt.Fprintf(&hostgroups, "%s[1:%s]\n\n", hostgroup.Name, hostgroup.Count)
   }
 
-  return(hostgroups)
+  return(&hostgroups)
 }
 
-func group_vars (config *config.Config) ([]string) {
+func group_vars (config *config.Config) (*bytes.Buffer) {
 
-  var group_vars []string
+  var group_vars bytes.Buffer
 
   for _,hostgroup := range config.Hostgroups {
-    group_vars = append(group_vars, fmt.Sprintf("[%s:vars]", hostgroup.Name))
+    fmt.Fprintf(&group_vars, "[%s:vars]\n", hostgroup.Name)
 
     for _,vars := range hostgroup.Vars {
       for k,v := range vars {
-        group_vars = append(group_vars, fmt.Sprintf("%s=%s", k, v))
+        fmt.Fprintf(&group_vars, "%s=%s\n", k, v)
       }
     }
-
-    group_vars = append(group_vars, fmt.Sprintf("\n"))
+    fmt.Fprintf(&group_vars, "\n")
   }
 
-  return(group_vars)
+  return(&group_vars)
 }

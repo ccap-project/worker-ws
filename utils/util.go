@@ -5,7 +5,7 @@ import "bytes"
 import "text/template"
 //import "io/ioutil"
 
-func Template (tmpl string, data interface{}) (bytes.Buffer) {
+func Template (tmpl string, data interface{}) (*bytes.Buffer) {
 
   var b bytes.Buffer
 
@@ -19,7 +19,7 @@ func Template (tmpl string, data interface{}) (bytes.Buffer) {
   t.Execute(f, data)
   f.Flush()
 
-  return(b)
+  return(&b)
 }
 
 /*

@@ -1,15 +1,40 @@
 package ansible
 
-import "fmt"
+import "bytes"
+//import "fmt"
+import "io/ioutil"
 import "../config/"
 
 func Serializer (config *config.Config) {
 
   var inventory bytes.Buffer
 
-  hosts := hosts(config)...)
+  hosts         := hosts(config)
+  hostgroups    := hostgroups(config)
+  group_vars    := group_vars(config)
 
-  fmt.Printf("%s\n", inventory.String())
+  inventory.Write([]byte("---\n"))
+  inventory.Write(hosts.Bytes())
+  inventory.Write(hosts.Bytes())
+  inventory.Write(hostgroups.Bytes())
+  inventory.Write(group_vars.Bytes())
+
+  ioutil.WriteFile("hosts", inventory.Bytes(), 0644)
+
+  playbook      := playbook(config)
+  ioutil.WriteFile("site.yml", playbook.Bytes(), 0644)
+
+  requirements  := requirements(config)
+  ioutil.WriteFile("requirements.yml", requirements.Bytes(), 0644)
+
+
+  //fmt.Printf("==========\n%s\n=============\n", inventory.String())
+  //fmt.Printf("%s\n", hosts.String())
+  //fmt.Printf("%s\n", hostgroups.String())
+  //fmt.Printf("%s\n", group_vars.String())
+  //fmt.Printf("%s\n", playbook.String())
+  //fmt.Printf("%s\n", requirements.String())
+
 
 /*
   output = append(output, hosts(config)...)
@@ -24,3 +49,5 @@ func Serializer (config *config.Config) {
   }
   */
 }
+
+//func Build

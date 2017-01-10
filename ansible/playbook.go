@@ -1,32 +1,30 @@
 package ansible
 
+import "bytes"
 import "fmt"
-//import "strings"
-//import "text/template"
-//import "os"
 
 import "../config/"
 //import "../utils"
 
-func playbook (config *config.Config) ([]string) {
+func playbook (config *config.Config) (*bytes.Buffer) {
 
-  var plays []string
+  var plays bytes.Buffer
+
+  plays.Write([]byte("---\n"))
 
   for _,hostgroup := range config.Hostgroups {
 
     if hostgroup.Roles != nil {
-      plays = append(plays, fmt.Sprintf("- hosts: %s", hostgroup.Name))
-      plays = append(plays, "  roles:")
+      fmt.Fprintf(&plays, "- hosts: %s\n", hostgroup.Name)
+      fmt.Fprintf(&plays, "  roles:\n")
 
       for _,role := range hostgroup.Roles {
-        plays = append(plays, fmt.Sprintf("    - %s", role.Name))
+        fmt.Fprintf(&plays, "    - %s\n", role.Name)
       }
 
-      plays = append(plays, fmt.Sprintf("\n"))
+      fmt.Fprintf(&plays, "\n")
     }
   }
 
-  WriteFile("playbook.yml", plays)
-
-  return(plays)
+  return(&plays)
 }

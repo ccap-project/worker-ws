@@ -1,6 +1,6 @@
 package openstack
 
-//import "fmt"
+import "bytes"
 //import "text/template"
 //import "os"
 
@@ -22,14 +22,14 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
 }
 `
 
-func instance (config *config.Config) ([]string) {
+func instance (config *config.Config) (*bytes.Buffer) {
 
-  var instances []string
+  var instances bytes.Buffer
 
   for _, h := range config.Hostgroups {
-    z := utils.Template(instance_resource_tmpl, h)
-    instances = append(instances, z)
+    i := utils.Template(instance_resource_tmpl, h)
+    instances.Write(i.Bytes())
   }
 
-  return(instances)
+  return(&instances)
 }

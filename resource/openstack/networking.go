@@ -1,13 +1,15 @@
 package openstack
 
+import "bytes"
+import "fmt"
+
 import "../../config/"
 import "../../utils"
-import "fmt"
 
 const network_resource_tmpl = `
 resource "openstack_networking_network_v2" "{{.Name}}" {
   name = "{{.Name}}"
-{{if ne .AdminState "" }}  admin_state_up = {{if eq .AdminState "up"}}"true" {{else}} "false"{{end}}{{end -}}
+{{if ne .AdminState "" }}  admin_state_up = {{end}}{{if eq .AdminState "up"}}"true" {{else}} "false"{{end -}}
 }
 `
 const router_resource_tmpl = `
@@ -33,51 +35,54 @@ resource "openstack_networking_subnet_v2" "{{.Name}}" {
 }
 `
 
-func network(config *config.Config) ([]string) {
+func network(config *config.Config) (*bytes.Buffer) {
 
-  var networks []string
+  var networks bytes.Buffer
 
   for _, net := range config.Networks {
-    z := utils.Template(network_resource_tmpl, net)
-    networks = append(networks, z)
+    n := utils.Template(network_resource_tmpl, net)
+    networks.Write(n.Bytes())
   }
 
-  return(networks)
+  return(&networks)
 }
 
-func router(config *config.Config) ([]string) {
+func router(config *config.Config) (*bytes.Buffer) {
 
-  var routers []string
+  var routers bytes.Buffer
+
+  fmt.Printf("\n%v\n", config.Routers)
 
   for _, router := range config.Routers {
-    fmt.Printf("%v", router)
-    z := utils.Template(router_resource_tmpl, router)
-    routers = append(routers, z)
+    fmt.Printf("%s %s\n", router.Name, router.AdminState)
+    fmt.Printf("%v\n", router)
+    r := utils.Template(router_resource_tmpl, router)
+    routers.Write(r.Bytes())
   }
 
-  return(routers)
+  return(&routers)
 }
 
-func router_interface(config *config.Config) ([]string) {
+func router_interface(config *config.Config) (*bytes.Buffer) {
 
-  var routers_interfaces []string
+  var routers_interfaces bytes.Buffer
 
   for _, router_interface := range config.RoutersInterfaces {
-    z := utils.Template(router_interface_resource_tmpl, router_interface)
-    routers_interfaces = append(routers_interfaces, z)
+    i := utils.Template(router_interface_resource_tmpl, router_interface)
+    routers_interfaces.Write(i.Bytes())
   }
 
-  return(routers_interfaces)
+  return(&routers_interfaces)
 }
 
-func subnet(config *config.Config) ([]string) {
+func subnet(config *config.Config) (*bytes.Buffer) {
 
-  var subnets []string
+  var subnets bytes.Buffer
 
   for _, subnet := range config.Subnets {
-    z := utils.Template(subnet_resource_tmpl, subnet)
-    subnets = append(subnets, z)
+    s := utils.Template(subnet_resource_tmpl, subnet)
+    subnets.Write(s.Bytes())
   }
 
-  return(subnets)
+  return(&subnets)
 }

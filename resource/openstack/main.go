@@ -1,11 +1,12 @@
 package openstack
 
-import "fmt"
+import "bytes"
+import "io/ioutil"
+
 import "../../config/"
 import "../../utils"
 
-const provider_resource_tmpl = `
-provider "openstack" {
+const provider_resource_tmpl = `provider "openstack" {
   user_name  = "{{.Username}}"
   tenant_name = "{{.Tenantname}}"
   password  = "{{.Password}}"
@@ -15,23 +16,26 @@ provider "openstack" {
 
 func Serializer (config *config.Config) {
 
-  output := make([]string, 1)
+  var tf bytes.Buffer
 
-  //provider(config)
-  //output = append(output, router(config)...)
-  //output = append(output, router_interface(config)...)
-  //output = append(output, network(config)...)
-  //output = append(output, subnet(config)...)
-  //output = append(output, instance(config)...)
+  provider          := provider(config)
+  router            := router(config)
+  router_interface  := router_interface(config)
+  network           := network(config)
+  subnet            := subnet(config)
+  instance          := instance(config)
 
-  for _,v := range output {
-    fmt.Printf("%s\n", v)
-  }
+  tf.Write(provider.Bytes())
+  tf.Write(router.Bytes())
+  tf.Write(router_interface.Bytes())
+  tf.Write(network.Bytes())
+  tf.Write(subnet.Bytes())
+  tf.Write(instance.Bytes())
+
+  ioutil.WriteFile("site.tf", tf.Bytes(), 0644)
 }
 
-func provider (config *config.Config) (string) {
+func provider (config *config.Config) (*bytes.Buffer) {
 
-  z := utils.Template(provider_resource_tmpl, config.Provider)
-
-  return(z)
+  return(utils.Template(provider_resource_tmpl, config.Provider))
 }
