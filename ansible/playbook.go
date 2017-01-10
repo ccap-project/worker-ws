@@ -4,7 +4,6 @@ import "bytes"
 import "fmt"
 
 import "../config/"
-//import "../utils"
 
 func playbook (config *config.Config) (*bytes.Buffer) {
 

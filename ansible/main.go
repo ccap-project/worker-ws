@@ -5,7 +5,7 @@ import "bytes"
 import "io/ioutil"
 import "../config/"
 
-func Serializer (config *config.Config) {
+func Serializer (config *config.Config) (error) {
 
   var inventory bytes.Buffer
 
@@ -24,9 +24,13 @@ func Serializer (config *config.Config) {
   playbook      := playbook(config)
   ioutil.WriteFile("site.yml", playbook.Bytes(), 0644)
 
-  requirements  := requirements(config)
+  requirements, err  := requirements(config)
+  if err != nil {
+    return(err)
+  }
   ioutil.WriteFile("requirements.yml", requirements.Bytes(), 0644)
 
+  return(nil)
 
   //fmt.Printf("==========\n%s\n=============\n", inventory.String())
   //fmt.Printf("%s\n", hosts.String())
@@ -49,5 +53,3 @@ func Serializer (config *config.Config) {
   }
   */
 }
-
-//func Build

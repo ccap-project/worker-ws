@@ -35,19 +35,22 @@ resource "openstack_networking_subnet_v2" "{{.Name}}" {
 }
 `
 
-func network(config *config.Config) (*bytes.Buffer) {
+func network(config *config.Config) (*bytes.Buffer, error) {
 
   var networks bytes.Buffer
 
   for _, net := range config.Networks {
-    n := utils.Template(network_resource_tmpl, net)
+    n, err := utils.Template(network_resource_tmpl, net)
+    if err != nil {
+      return nil, err
+    }
     networks.Write(n.Bytes())
   }
 
-  return(&networks)
+  return &networks, nil
 }
 
-func router(config *config.Config) (*bytes.Buffer) {
+func router(config *config.Config) (*bytes.Buffer, error) {
 
   var routers bytes.Buffer
 
@@ -56,33 +59,44 @@ func router(config *config.Config) (*bytes.Buffer) {
   for _, router := range config.Routers {
     fmt.Printf("%s %s\n", router.Name, router.AdminState)
     fmt.Printf("%v\n", router)
-    r := utils.Template(router_resource_tmpl, router)
+
+    r, err := utils.Template(router_resource_tmpl, router)
+    if err != nil {
+      return nil, err
+    }
+
     routers.Write(r.Bytes())
   }
 
-  return(&routers)
+  return &routers, nil
 }
 
-func router_interface(config *config.Config) (*bytes.Buffer) {
+func router_interface(config *config.Config) (*bytes.Buffer, error) {
 
   var routers_interfaces bytes.Buffer
 
   for _, router_interface := range config.RoutersInterfaces {
-    i := utils.Template(router_interface_resource_tmpl, router_interface)
+    i,err := utils.Template(router_interface_resource_tmpl, router_interface)
+    if err != nil {
+      return nil, err
+    }
     routers_interfaces.Write(i.Bytes())
   }
 
-  return(&routers_interfaces)
+  return &routers_interfaces, nil
 }
 
-func subnet(config *config.Config) (*bytes.Buffer) {
+func subnet(config *config.Config) (*bytes.Buffer, error) {
 
   var subnets bytes.Buffer
 
   for _, subnet := range config.Subnets {
-    s := utils.Template(subnet_resource_tmpl, subnet)
+    s,err := utils.Template(subnet_resource_tmpl, subnet)
+    if err != nil {
+      return nil, err
+    }
     subnets.Write(s.Bytes())
   }
 
-  return(&subnets)
+  return &subnets, nil
 }

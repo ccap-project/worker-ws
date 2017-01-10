@@ -5,28 +5,26 @@ import "bytes"
 import "text/template"
 //import "io/ioutil"
 
-func Template (tmpl string, data interface{}) (*bytes.Buffer) {
+func Template (tmpl string, data interface{}) (*bytes.Buffer, error) {
 
+  var err error
   var b bytes.Buffer
 
-  // XXX: Error handling !!
   f := bufio.NewWriter(&b)
 
   t := template.New("instance")
 
-  t,_ = t.Parse(tmpl)
+  t,err = t.Parse(tmpl)
+  if err != nil {
+    return &b, err
+  }
 
-  t.Execute(f, data)
+  err = t.Execute(f, data)
+  if err != nil {
+    return &b, err
+  }
+
   f.Flush()
 
-  return(&b)
+  return &b, nil
 }
-
-/*
-func WriteFile (filename string, file_content []string) (error) {
-
-  err := ioutil.WriteFile(filename,  []byte(file_content), 0644)
-
-  return err
-}
-*/

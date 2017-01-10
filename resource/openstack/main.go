@@ -14,16 +14,39 @@ const provider_resource_tmpl = `provider "openstack" {
 }
 `
 
-func Serializer (config *config.Config) {
+func Serializer (config *config.Config) (error) {
 
   var tf bytes.Buffer
 
-  provider          := provider(config)
-  router            := router(config)
-  router_interface  := router_interface(config)
-  network           := network(config)
-  subnet            := subnet(config)
-  instance          := instance(config)
+  provider, err := provider(config)
+  if err != nil {
+    return(err)
+  }
+
+  router, err := router(config)
+  if err != nil {
+    return(err)
+  }
+
+  router_interface, err := router_interface(config)
+  if err != nil {
+    return(err)
+  }
+
+  network, err := network(config)
+  if err != nil {
+    return(err)
+  }
+
+  subnet, err  := subnet(config)
+  if err != nil {
+    return(err)
+  }
+
+  instance, err  := instance(config)
+  if err != nil {
+    return(err)
+  }
 
   tf.Write(provider.Bytes())
   tf.Write(router.Bytes())
@@ -33,9 +56,16 @@ func Serializer (config *config.Config) {
   tf.Write(instance.Bytes())
 
   ioutil.WriteFile("site.tf", tf.Bytes(), 0644)
+
+  return(nil)
 }
 
-func provider (config *config.Config) (*bytes.Buffer) {
+func provider (config *config.Config) (*bytes.Buffer, error) {
 
-  return(utils.Template(provider_resource_tmpl, config.Provider))
+  p, err := utils.Template(provider_resource_tmpl, config.Provider)
+  if err != nil {
+    return p,err
+  }
+
+  return p,nil
 }

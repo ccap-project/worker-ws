@@ -10,7 +10,7 @@ const require_tmpl = `- src: {{.Source}}
 
 `
 
-func requirements (config *config.Config) (*bytes.Buffer) {
+func requirements (config *config.Config) (*bytes.Buffer, error) {
 
   var requirements bytes.Buffer
 
@@ -20,11 +20,14 @@ func requirements (config *config.Config) (*bytes.Buffer) {
 
     if hostgroup.Roles != nil {
       for _,role := range hostgroup.Roles {
-        req := utils.Template(require_tmpl, role)
+        req, err := utils.Template(require_tmpl, role)
+        if err != nil {
+          return nil,err
+        }
         requirements.Write(req.Bytes())
       }
     }
   }
 
-  return(&requirements)
+  return &requirements,nil
 }

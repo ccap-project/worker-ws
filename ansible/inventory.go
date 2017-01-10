@@ -2,12 +2,8 @@ package ansible
 
 import "bytes"
 import "fmt"
-//import "strings"
-//import "text/template"
-//import "os"
 
 import "../config/"
-//import "../utils"
 
 func hosts (config *config.Config) (*bytes.Buffer) {
 
@@ -20,7 +16,6 @@ func hosts (config *config.Config) (*bytes.Buffer) {
     for _,opt := range host.Options {
       for k,v := range opt {
         fmt.Fprintf(&hosts, " %s=%s", k,v)
-        //host_line = fmt.Sprintf("%s %s=%s", host_line, k, v)
       }
     }
     fmt.Fprintf(&hosts, "\n")

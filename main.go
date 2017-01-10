@@ -3,7 +3,7 @@ package main
 import (
 
   //"encoding/json"
-  //"fmt"
+  "fmt"
   //"net/http"
   //"time"
   //"github.com/gorilla/mux"
@@ -20,8 +20,7 @@ import (
 
 func main() {
 
-  //var ( SystemConfig *config.CellMap )
-  //var ( SystemConfig *config.Config )
+  var err error
 
   SystemConfig := config.ReadJson("example.json")
 
@@ -29,7 +28,14 @@ func main() {
   case "aws":
     aws.Serializer(SystemConfig)
   case "openstack":
-    ansible.Serializer(SystemConfig)
-    openstack.Serializer(SystemConfig)
+    err = ansible.Serializer(SystemConfig)
+    if err != nil {
+      fmt.Println("Failure serializing Ansible Openstack file, ", err)
+    }
+
+    err = openstack.Serializer(SystemConfig)
+    if err != nil {
+      fmt.Println("Failure serializing Terraform Openstack file, ", err)
+    }
   }
 }

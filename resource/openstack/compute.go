@@ -22,14 +22,18 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
 }
 `
 
-func instance (config *config.Config) (*bytes.Buffer) {
+func instance (config *config.Config) (*bytes.Buffer, error) {
 
   var instances bytes.Buffer
 
   for _, h := range config.Hostgroups {
-    i := utils.Template(instance_resource_tmpl, h)
+    i,err := utils.Template(instance_resource_tmpl, h)
+    if err != nil {
+      return nil, err
+    }
+
     instances.Write(i.Bytes())
   }
 
-  return(&instances)
+  return &instances, nil
 }
