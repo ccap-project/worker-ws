@@ -6,7 +6,7 @@ import (
   t "github.com/hashicorp/terraform/terraform"
 )
 
-func ReadState(file string) (interface{}, error) {
+func ReadState(file string) (*t.State, error) {
 
   f, err := os.Open(file)
   defer f.Close()
