@@ -14,7 +14,7 @@ const provider_resource_tmpl = `provider "openstack" {
 }
 `
 
-func Serializer (config *config.Config) (error) {
+func Serialize (config *config.Config) (error) {
 
   var tf bytes.Buffer
 

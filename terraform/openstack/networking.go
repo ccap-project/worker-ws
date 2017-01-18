@@ -1,7 +1,6 @@
 package openstack
 
 import "bytes"
-import "fmt"
 
 import "../../config/"
 import "../../utils"
@@ -9,13 +8,13 @@ import "../../utils"
 const network_resource_tmpl = `
 resource "openstack_networking_network_v2" "{{.Name}}" {
   name = "{{.Name}}"
-{{if ne .AdminState "" }}  admin_state_up = {{end}}{{if eq .AdminState "up"}}"true" {{else}} "false"{{end -}}
+{{if ne .AdminState "" }}  admin_state_up = {{if eq .AdminState "up"}}"true" {{else}} "false"{{end}}{{end -}}
 }
 `
 const router_resource_tmpl = `
 resource "openstack_networking_router_v2" "{{.Name}}" {
   name = "{{.Name}}"
-{{if ne .AdminState "" }}  admin_state_up = {{if eq .AdminState "up"}}"true" {{else}} "false"{{end}}{{- end}}
+{{if ne .AdminState "" }}  admin_state_up = {{if eq .AdminState "up"}}"true" {{else}} "false"{{end}}{{end -}}
 }
 `
 
@@ -54,20 +53,14 @@ func router(config *config.Config) (*bytes.Buffer, error) {
 
   var routers bytes.Buffer
 
-  fmt.Printf("\n%v\n", config.Routers)
-
   for _, router := range config.Routers {
-    fmt.Printf("%s %s\n", router.Name, router.AdminState)
-    fmt.Printf("%v\n", router)
 
     r, err := utils.Template(router_resource_tmpl, router)
     if err != nil {
       return nil, err
     }
-
     routers.Write(r.Bytes())
   }
-
   return &routers, nil
 }
 

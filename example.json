@@ -1,6 +1,6 @@
 {
   "provider": {
-    "name": "openstack",
+    "name": "Openstack",
     "region": "br-sp1",
     "tenantname": "uolcloudBiancalana",
     "username": "uolcloudBiancalana",

@@ -7,6 +7,12 @@ import (
   "os"
 )
 
+type Commands struct {
+  Terraform string
+  Ansible   string
+}
+
+
 type Provider struct {
   Name        string `json:"name"`
   Region      string `json:"region"`
@@ -62,6 +68,7 @@ type Subnet struct {
 }
 
 type Config struct {
+  Commands          Commands
   Provider          *Provider           `json:"provider"`
   Hosts             []*Host            `json:"hosts"`
   Hostgroups        []*Hostgroup        `json:"hostgroups"`
@@ -71,13 +78,6 @@ type Config struct {
   RoutersInterfaces []*RouterInterface  `json:"routers_interfaces"`
 }
 
-//type Resource struct {
-//  ResourceType ResourceType
-//}
-
-//type TerraForm struct {
-//  Resource     Resource
-//}
 
 /*
 func ReadFile(configFilePath string) *Configuration {

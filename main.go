@@ -2,39 +2,43 @@ package main
 
 import (
 
-  //"encoding/json"
   "fmt"
-  //"net/http"
-  //"time"
-  //"github.com/gorilla/mux"
+  "os"
+  "time"
 
-  //"./role/"
   "./config/"
-  "./ansible"
-  "./resource/aws"
-  "./resource/openstack"
-
+  //"./ansible"
+  "./terraform"
 )
 
 func main() {
 
-  var err error
+  //var err error
+  //terraform := terraform.Serializer
 
-  SystemConfig := config.ReadJson("example.json")
+  SystemConfig  := config.ReadJson("example.json")
+  SystemConfig.Commands.Terraform = "/Users/ale/Downloads/terraform"
 
-  err = ansible.Serializer(SystemConfig)
-  if err != nil {
-    fmt.Println("Failure serializing Ansible Openstack file, ", err)
+  TerraformSerializer     := terraform.Init(SystemConfig.Provider.Name)
+
+  if TerraformSerializer == nil {
+    fmt.Printf("Terraform serializer for provider(%s) is not supported ! \n", SystemConfig.Provider.Name)
+    os.Exit(-1)
   }
 
-  switch SystemConfig.Provider.Name {
-    case "aws":
-      aws.Serializer(SystemConfig)
-
-    case "openstack":
-      err = openstack.Serializer(SystemConfig)
-      if err != nil {
-        fmt.Println("Failure serializing Terraform Openstack file, ", err)
-      }
+  if err := TerraformSerializer(SystemConfig); err != nil {
+    fmt.Println("Failure serializing Terraform Openstack file, ", err)
+    os.Exit(-1)
   }
+
+  if err := terraform.Validate(SystemConfig); err != nil {
+    fmt.Println("Failure validating Terraform file,", err)
+    os.Exit(-1)
+  }
+  os.Exit(0)
+
+  //err = ansible.Serializer(SystemConfig)
+  //if err != nil {
+  //  fmt.Println("Failure serializing Ansible Openstack file, ", err)
+  //}
 }
