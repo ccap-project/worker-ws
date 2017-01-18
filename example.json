@@ -36,7 +36,7 @@
     }
   ],
   "hostgroups": [
-    {"name": "graphite-web","image": "ubuntu", "flavor": "m1.large", "count": "3", "network": "net-web", "vars": [{"graphite_web_port": "8080"}], "roles": [{"name":"nginx", "src": "http://gitlab.uoldiveo.intranet", "version": "1.0.0"}] },
-    {"name": "graphite-be", "image": "ubuntu", "flavor": "m1.xlarge", "count": "10", "network": "net-be" }
+    {"name": "graphite-web","image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd", "flavor": "small.2GB", "count": "3", "network": "net-web", "vars": [{"graphite_web_port": "8080"}], "roles": [{"name":"nginx", "src": "http://gitlab.uoldiveo.intranet", "version": "1.0.0"}] },
+    {"name": "graphite-be", "image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd", "flavor": "small.2GB", "count": "10", "network": "net-be" }
   ]
 }
