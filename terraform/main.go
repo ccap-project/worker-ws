@@ -1,39 +1,20 @@
 package terraform
 
 import (
-  "errors"
   "../config/"
-  "../utils/"
   "./openstack"
 )
 
+type Terraform interface {
+  Apply(*config.Config)     error
+  Serialize(*config.Config) error
+  Validate(*config.Config)  error
+}
 
-func Init(provider string) func(*config.Config) error {
+func Init(provider string) Terraform {
 
   if provider == "Openstack" {
-    return openstack.Serialize
-  }
-
-  return nil
-}
-
-func Apply(SystemConfig *config.Config) error {
-
-  cmd,_,stderr := utils.RunCmd(SystemConfig.Commands.Terraform, "apply")
-
-  if err_wait := cmd.Wait(); err_wait != nil {
-    return errors.New(stderr.String())
-  }
-
-  return nil
-}
-
-func Validate(SystemConfig *config.Config) error {
-
-  cmd,_,stderr := utils.RunCmd(SystemConfig.Commands.Terraform, "validate")
-
-  if err_wait := cmd.Wait(); err_wait != nil {
-    return errors.New(stderr.String())
+    return &openstack.Openstack{}
   }
 
   return nil

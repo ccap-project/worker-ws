@@ -1,10 +1,14 @@
 package openstack
 
-import "bytes"
-import "io/ioutil"
+import (
+  "bytes"
+  "io/ioutil"
+  "../../config/"
+  "../common"
+  "../../utils"
+)
 
-import "../../config/"
-import "../../utils"
+type Openstack struct {}
 
 const provider_resource_tmpl = `provider "openstack" {
   user_name  = "{{.Username}}"
@@ -13,8 +17,15 @@ const provider_resource_tmpl = `provider "openstack" {
   auth_url  = "{{.AuthUrl}}"
 }
 `
+func (o *Openstack) Apply(config *config.Config) (error) {
+  return terraformcommon.Apply(config)
+}
 
-func Serialize (config *config.Config) (error) {
+func (o *Openstack) Validate(config *config.Config) (error) {
+  return terraformcommon.Validate(config)
+}
+
+func (o *Openstack) Serialize(config *config.Config) (error) {
 
   var tf bytes.Buffer
 
@@ -59,6 +70,7 @@ func Serialize (config *config.Config) (error) {
 
   return(nil)
 }
+
 
 func provider (config *config.Config) (*bytes.Buffer, error) {
 
