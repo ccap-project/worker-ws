@@ -7,6 +7,7 @@ import (
 
 type Terraform interface {
   Apply(*config.Config)     error
+  ReadState(string)         error
   Serialize(*config.Config) error
   Validate(*config.Config)  error
 }

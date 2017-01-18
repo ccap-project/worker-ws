@@ -40,10 +40,10 @@ func main() {
     os.Exit(-1)
   }
 
-  //if err := Terraform.ReadState(SystemConfig); err != nil {
-  //  fmt.Println("Failure applying Terraform,", err)
-  //  os.Exit(-1)
-  //}
+  if err := Terraform.ReadState("./terraform.tfstate"); err != nil {
+    fmt.Println("Failure applying Terraform,", err)
+    os.Exit(-1)
+  }
 
 
   os.Exit(0)
