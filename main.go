@@ -4,7 +4,6 @@ import (
 
   "fmt"
   "os"
-  "time"
 
   "./config/"
   //"./ansible"
@@ -35,6 +34,12 @@ func main() {
     fmt.Println("Failure validating Terraform file,", err)
     os.Exit(-1)
   }
+
+  if err := terraform.Apply(SystemConfig); err != nil {
+    fmt.Println("Failure applying Terraform,", err)
+    os.Exit(-1)
+  }
+
   os.Exit(0)
 
   //err = ansible.Serializer(SystemConfig)

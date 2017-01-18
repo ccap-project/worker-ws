@@ -121,6 +121,6 @@ func ReadJson(configFilePath string) *Config {
   }
 
   //config.Log = log.New(os.Stderr, "roles-ws: ", log.Llongfile)
-  fmt.Printf("%+v", config)
+  //fmt.Printf("%+v", config)
   return &config
 }

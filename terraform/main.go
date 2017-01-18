@@ -17,6 +17,17 @@ func Init(provider string) func(*config.Config) error {
   return nil
 }
 
+func Apply(SystemConfig *config.Config) error {
+
+  cmd,_,stderr := utils.RunCmd(SystemConfig.Commands.Terraform, "apply")
+
+  if err_wait := cmd.Wait(); err_wait != nil {
+    return errors.New(stderr.String())
+  }
+
+  return nil
+}
+
 func Validate(SystemConfig *config.Config) error {
 
   cmd,_,stderr := utils.RunCmd(SystemConfig.Commands.Terraform, "validate")
