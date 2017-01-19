@@ -16,6 +16,7 @@ func requirements (config *config.Config) (*bytes.Buffer, error) {
 
   requirements.Write([]byte("---\n"))
 
+  // XXX: Move this loop to template
   for _,hostgroup := range config.Hostgroups {
 
     if hostgroup.Roles != nil {

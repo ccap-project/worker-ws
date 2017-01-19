@@ -9,6 +9,7 @@ func hosts (config *config.Config) (*bytes.Buffer) {
 
   var hosts bytes.Buffer
 
+  // XXX: Move this loop to template
   for _,host := range config.Hosts {
 
     fmt.Fprintf(&hosts, "%s", host.Name)
@@ -29,6 +30,7 @@ func hostgroups (config *config.Config) (*bytes.Buffer) {
 
   var hostgroups bytes.Buffer
 
+  // XXX: Move this loop to template
   for _,hostgroup := range config.Hostgroups {
     fmt.Fprintf(&hostgroups, "[%s]\n", hostgroup.Name)
     fmt.Fprintf(&hostgroups, "%s[1:%s]\n\n", hostgroup.Name, hostgroup.Count)
@@ -41,6 +43,7 @@ func group_vars (config *config.Config) (*bytes.Buffer) {
 
   var group_vars bytes.Buffer
 
+  // XXX: Move this loop to template
   for _,hostgroup := range config.Hostgroups {
     fmt.Fprintf(&group_vars, "[%s:vars]\n", hostgroup.Name)
 
