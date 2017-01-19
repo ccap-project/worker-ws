@@ -22,18 +22,6 @@
     {"name": "subnet-be", "network": "net-be", "cidr": "192.168.100.0/24" }
   ],
   "hosts": [
-    {"name": "graphite-web1", "options": [
-      {"ansible_host": "192.168.200.2"}
-      ]
-    },
-    {"name": "graphite-web2", "options": [
-      {"ansible_host": "192.168.200.3"}
-      ]
-    },
-    {"name": "graphite-be1", "options": [
-      {"ansible_host": "192.168.100.2"}
-      ]
-    }
   ],
   "hostgroups": [
     {"name": "graphite-web","image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd", "flavor": "small.2GB", "count": "3", "network": "net-web", "vars": [{"graphite_web_port": "8080"}], "roles": [{"name":"nginx", "src": "http://gitlab.uoldiveo.intranet", "version": "1.0.0"}] },
