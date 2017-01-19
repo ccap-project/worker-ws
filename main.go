@@ -1,12 +1,11 @@
 package main
 
 import (
-
   "fmt"
   "os"
 
   "./config/"
-  //"./ansible"
+  "./ansible"
   "./terraform"
 )
 
@@ -40,16 +39,12 @@ func main() {
     os.Exit(-1)
   }
 
-  if err := Terraform.ReadState("./terraform.tfstate"); err != nil {
-    fmt.Println("Failure applying Terraform,", err)
+  if err := Terraform.ReadState(SystemConfig, "./terraform.tfstate"); err != nil {
+    fmt.Println("Failure reading Terraform state,", err)
     os.Exit(-1)
   }
 
-
-  os.Exit(0)
-
-  //err = ansible.Serializer(SystemConfig)
-  //if err != nil {
-  //  fmt.Println("Failure serializing Ansible Openstack file, ", err)
-  //}
+  if err := ansible.Serializer(SystemConfig); err != nil {
+    fmt.Println("Failure serializing Ansible Openstack file, ", err)
+  }
 }

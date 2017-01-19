@@ -1,20 +1,32 @@
 package openstack
 
 import (
-  "fmt"
+  //"fmt"
+  "../../config"
   "../common"
 )
 
-func (o *Openstack) ReadState(file string) error {
+func (o *Openstack) ReadState(SystemConfig *config.Config, file string) (error) {
 
   state, err := terraformcommon.ReadState(file)
 
+  if err != nil {
+    return err
+  }
+
   for m := range state.Modules {
-    for r,rv := range state.Modules[m].Resources {
+    for _,rv := range state.Modules[m].Resources {
 
       switch rv.Type {
         case "openstack_compute_instance_v2":
-            fmt.Printf("(%s) (%s) (%s) (%s)\n", r, rv.Type, rv.Primary.Attributes["name"], rv.Primary.Attributes["access_ip_v4"])
+          host := new(config.Host)
+          option := make(map[string]string)
+
+          host.Name = rv.Primary.Attributes["name"]
+          option["ansible_host"] = rv.Primary.Attributes["access_ip_v4"]
+
+          host.Options = append(host.Options, option)
+          SystemConfig.Hosts = append(SystemConfig.Hosts, host)
 
         default:
 
@@ -22,5 +34,5 @@ func (o *Openstack) ReadState(file string) error {
     }
   }
 
-  return err
+  return nil
 }
