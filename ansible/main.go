@@ -15,7 +15,6 @@ func Serializer (config *config.Config) (error) {
 
   inventory.Write([]byte("---\n"))
   inventory.Write(hosts.Bytes())
-  inventory.Write(hosts.Bytes())
   inventory.Write(hostgroups.Bytes())
   inventory.Write(group_vars.Bytes())
 
