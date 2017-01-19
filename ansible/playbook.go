@@ -1,29 +1,32 @@
 package ansible
 
-import "bytes"
-import "fmt"
+import (
+  "bytes"
+  "../config/"
+  "../utils"
+)
 
-import "../config/"
 
-func playbook (config *config.Config) (*bytes.Buffer) {
+const play_tmpl = `{{range .}}- hosts: {{.Name}}
+  roles:
+    {{range .Roles}}- { role: '{{.Name}}', tags: [ '{{.Name}}' ]}{{end}}
+
+{{end}}
+`
+
+
+func playbook(config *config.Config) (*bytes.Buffer, error) {
 
   var plays bytes.Buffer
 
   plays.Write([]byte("---\n"))
 
-  for _,hostgroup := range config.Hostgroups {
-
-    if hostgroup.Roles != nil {
-      fmt.Fprintf(&plays, "- hosts: %s\n", hostgroup.Name)
-      fmt.Fprintf(&plays, "  roles:\n")
-
-      for _,role := range hostgroup.Roles {
-        fmt.Fprintf(&plays, "    - %s\n", role.Name)
-      }
-
-      fmt.Fprintf(&plays, "\n")
-    }
+  p, err := utils.Template(play_tmpl, config.Hostgroups)
+  if err != nil {
+    return nil, err
   }
 
-  return(&plays)
+  plays.Write(p.Bytes())
+
+  return &plays, nil
 }

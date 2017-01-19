@@ -1,7 +1,6 @@
 package ansible
 
 import "bytes"
-//import "fmt"
 import "io/ioutil"
 import "../config/"
 
@@ -20,7 +19,10 @@ func Serializer (config *config.Config) (error) {
 
   ioutil.WriteFile("hosts", inventory.Bytes(), 0644)
 
-  playbook      := playbook(config)
+  playbook, err := playbook(config)
+  if err != nil {
+    return(err)
+  }
   ioutil.WriteFile("site.yml", playbook.Bytes(), 0644)
 
   requirements, err  := requirements(config)
