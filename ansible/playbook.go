@@ -7,11 +7,11 @@ import (
 )
 
 
-const play_tmpl = `{{range .}}- hosts: {{.Name}}
+const play_tmpl = `{{range .}}{{if .Roles}}- hosts: {{.Name}}
   roles:
     {{range .Roles}}- { role: '{{.Name}}', tags: [ '{{.Name}}' ]}{{end}}
 
-{{end}}
+{{end}}{{end}}
 `
 
 
