@@ -15,7 +15,9 @@ func main() {
   //terraform := terraform.Serializer
 
   SystemConfig  := config.ReadJson("example.json")
-  SystemConfig.Commands.Terraform = "/Users/ale/Downloads/terraform"
+  SystemConfig.Commands.Terraform     = "/Users/ale/Downloads/terraform"
+  SystemConfig.Commands.Ansible       = "/Users/ale//Development/workspace/python_venv/venv/bin/ansible-playbook"
+  SystemConfig.Commands.AnsibleGalaxy = "/Users/ale//Development/workspace/python_venv/venv/bin/ansible-galaxy"
 
   Terraform := terraform.Init(SystemConfig.Provider.Name)
 
@@ -46,5 +48,22 @@ func main() {
 
   if err := ansible.Serializer(SystemConfig); err != nil {
     fmt.Println("Failure serializing Ansible Openstack file, ", err)
+    os.Exit(-1)
   }
+
+  if err := ansible.RolesInstall(SystemConfig); err != nil {
+    fmt.Println("Failure downloading Ansible galaxy roles, ", err)
+    os.Exit(-1)
+  }
+
+  if err := ansible.SyntaxCheck(SystemConfig); err != nil {
+    fmt.Println("Failure checking Ansible file, ", err)
+    os.Exit(-1)
+  }
+
+  if err := ansible.Run(SystemConfig); err != nil {
+    fmt.Println("Failure running Ansible, ", err)
+    os.Exit(-1)
+  }
+
 }

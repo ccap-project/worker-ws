@@ -7,8 +7,9 @@ import (
 )
 
 type Commands struct {
-  Terraform string
-  Ansible   string
+  Terraform       string
+  Ansible         string
+  AnsibleGalaxy   string
 }
 
 
