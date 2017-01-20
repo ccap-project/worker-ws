@@ -7,63 +7,17 @@ import (
   "./config/"
   "./ansible"
   "./terraform"
+  "./webservice"
 )
 
 func main() {
 
-  //var err error
-  //terraform := terraform.Serializer
+  system := config.ReadFile("etc/system.conf")
 
-  SystemConfig  := config.ReadJson("example.json")
-  SystemConfig.Commands.Terraform     = "/Users/ale/Downloads/terraform"
-  SystemConfig.Commands.Ansible       = "/Users/ale//Development/workspace/python_venv/venv/bin/ansible-playbook"
-  SystemConfig.Commands.AnsibleGalaxy = "/Users/ale//Development/workspace/python_venv/venv/bin/ansible-galaxy"
 
-  Terraform := terraform.Init(SystemConfig.Provider.Name)
+  //ReadJson("example.json")
 
-  if Terraform == nil {
-    fmt.Printf("Terraform support for provider(%s) is not implemented ! \n", SystemConfig.Provider.Name)
-    os.Exit(-1)
-  }
+  exit(0)
 
-  if err := Terraform.Serialize(SystemConfig); err != nil {
-    fmt.Println("Failure serializing Terraform Openstack file, ", err)
-    os.Exit(-1)
-  }
-
-  if err := Terraform.Validate(SystemConfig); err != nil {
-    fmt.Println("Failure validating Terraform file,", err)
-    os.Exit(-1)
-  }
-
-  if err := Terraform.Apply(SystemConfig); err != nil {
-    fmt.Println("Failure applying Terraform,", err)
-    os.Exit(-1)
-  }
-
-  if err := Terraform.ReadState(SystemConfig, "./terraform.tfstate"); err != nil {
-    fmt.Println("Failure reading Terraform state,", err)
-    os.Exit(-1)
-  }
-
-  if err := ansible.Serializer(SystemConfig); err != nil {
-    fmt.Println("Failure serializing Ansible Openstack file, ", err)
-    os.Exit(-1)
-  }
-
-  if err := ansible.RolesInstall(SystemConfig); err != nil {
-    fmt.Println("Failure downloading Ansible galaxy roles, ", err)
-    os.Exit(-1)
-  }
-
-  if err := ansible.SyntaxCheck(SystemConfig); err != nil {
-    fmt.Println("Failure checking Ansible file, ", err)
-    os.Exit(-1)
-  }
-
-  if err := ansible.Run(SystemConfig); err != nil {
-    fmt.Println("Failure running Ansible, ", err)
-    os.Exit(-1)
-  }
 
 }

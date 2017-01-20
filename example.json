@@ -4,7 +4,7 @@
     "region": "br-sp1",
     "tenantname": "uolcloudBiancalana",
     "username": "uolcloudBiancalana",
-    "password": "abcd",
+    "password": "hercules13",
     "auth_url": "https://keystone.br-sp1.openstack.uolcloud.com.br:5000/v2.0"
   },
   "routers": [

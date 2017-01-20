@@ -1,12 +1,11 @@
 package openstack
 
 import (
-  //"fmt"
   "../../config"
   "../common"
 )
 
-func (o *Openstack) ReadState(SystemConfig *config.Config, file string) (error) {
+func (o *Openstack) ReadState(cell *config.Cell, file string) (error) {
 
   state, err := terraformcommon.ReadState(file)
 
@@ -26,7 +25,7 @@ func (o *Openstack) ReadState(SystemConfig *config.Config, file string) (error) 
           option["ansible_host"] = rv.Primary.Attributes["access_ip_v4"]
 
           host.Options = append(host.Options, option)
-          SystemConfig.Hosts = append(SystemConfig.Hosts, host)
+          cell.Hosts = append(cell.Hosts, host)
 
         default:
 

@@ -22,7 +22,7 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
 }
 `
 
-func instance (config *config.Config) (*bytes.Buffer, error) {
+func instance (config *config.Cell) (*bytes.Buffer, error) {
 
   var instances bytes.Buffer
 

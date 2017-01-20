@@ -6,13 +6,6 @@ import (
   "os"
 )
 
-type Commands struct {
-  Terraform       string
-  Ansible         string
-  AnsibleGalaxy   string
-}
-
-
 type Provider struct {
   Name        string `json:"name"`
   Region      string `json:"region"`
@@ -67,8 +60,7 @@ type Subnet struct {
   AdminState    string `json:"admin_state"`
 }
 
-type Config struct {
-  Commands          Commands
+type Cell struct {
   Provider          *Provider           `json:"provider"`
   Hosts             []*Host            `json:"hosts"`
   Hostgroups        []*Hostgroup        `json:"hostgroups"`
@@ -78,35 +70,9 @@ type Config struct {
   RoutersInterfaces []*RouterInterface  `json:"routers_interfaces"`
 }
 
+func ReadJson(configFilePath string) *Cell {
 
-/*
-func ReadFile(configFilePath string) *Configuration {
-
-  file, err := os.Open(configFilePath)
-  if err != nil {
-    log.Fatalf("Can't open config file(%s), %s", configFilePath, err)
-  }
-  defer file.Close()
-
-  decoder := json.NewDecoder(file)
-  config := Configuration{GitlabCfg: GitlabCfg_t{TLSInsecureSkipVerify: true,
-                                                  Group: "ansible-roles"}}
-
-  err = decoder.Decode(&config)
-
-  if err != nil {
-    log.Fatalf("Can't decode config file(%s), %s", configFilePath, err)
-  }
-
-  config.Log = log.New(os.Stderr, "roles-ws: ", log.Llongfile)
-
-  return &config
-}
-*/
-
-func ReadJson(configFilePath string) *Config {
-
-  var config Config
+  var config Cell
 
   file, err := os.Open(configFilePath)
   if err != nil {

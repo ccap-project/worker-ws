@@ -17,44 +17,44 @@ const provider_resource_tmpl = `provider "openstack" {
   auth_url  = "{{.AuthUrl}}"
 }
 `
-func (o *Openstack) Apply(config *config.Config) (error) {
-  return terraformcommon.Apply(config)
+func (o *Openstack) Apply(system *config.SystemConfig) (error) {
+  return terraformcommon.Apply(system)
 }
 
-func (o *Openstack) Validate(config *config.Config) (error) {
-  return terraformcommon.Validate(config)
+func (o *Openstack) Validate(system *config.SystemConfig) (error) {
+  return terraformcommon.Validate(system)
 }
 
-func (o *Openstack) Serialize(config *config.Config) (error) {
+func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) (error) {
 
   var tf bytes.Buffer
 
-  provider, err := provider(config)
+  provider, err := provider(cell)
   if err != nil {
     return(err)
   }
 
-  router, err := router(config)
+  router, err := router(cell)
   if err != nil {
     return(err)
   }
 
-  router_interface, err := router_interface(config)
+  router_interface, err := router_interface(cell)
   if err != nil {
     return(err)
   }
 
-  network, err := network(config)
+  network, err := network(cell)
   if err != nil {
     return(err)
   }
 
-  subnet, err  := subnet(config)
+  subnet, err  := subnet(cell)
   if err != nil {
     return(err)
   }
 
-  instance, err  := instance(config)
+  instance, err  := instance(cell)
   if err != nil {
     return(err)
   }
@@ -66,15 +66,15 @@ func (o *Openstack) Serialize(config *config.Config) (error) {
   tf.Write(subnet.Bytes())
   tf.Write(instance.Bytes())
 
-  ioutil.WriteFile("site.tf", tf.Bytes(), 0644)
+  ioutil.WriteFile(system.Files.TerraformSite, tf.Bytes(), 0644)
 
   return(nil)
 }
 
 
-func provider (config *config.Config) (*bytes.Buffer, error) {
+func provider (cell *config.Cell) (*bytes.Buffer, error) {
 
-  p, err := utils.Template(provider_resource_tmpl, config.Provider)
+  p, err := utils.Template(provider_resource_tmpl, cell.Provider)
   if err != nil {
     return p,err
   }

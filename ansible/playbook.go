@@ -2,7 +2,8 @@ package ansible
 
 import (
   "bytes"
-  "../config/"
+
+  "../config"
   "../utils"
 )
 
@@ -15,7 +16,7 @@ const play_tmpl = `{{range .}}{{if .Roles}}- hosts: {{.Name}}
 `
 
 
-func playbook(config *config.Config) (*bytes.Buffer, error) {
+func playbook(config *config.Cell) (*bytes.Buffer, error) {
 
   var plays bytes.Buffer
 

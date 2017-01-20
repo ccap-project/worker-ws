@@ -5,7 +5,7 @@ import "fmt"
 
 import "../config/"
 
-func hosts (config *config.Config) (*bytes.Buffer) {
+func hosts (config *config.Cell) (*bytes.Buffer) {
 
   var hosts bytes.Buffer
 
@@ -26,7 +26,7 @@ func hosts (config *config.Config) (*bytes.Buffer) {
   return(&hosts)
 }
 
-func hostgroups (config *config.Config) (*bytes.Buffer) {
+func hostgroups (config *config.Cell) (*bytes.Buffer) {
 
   var hostgroups bytes.Buffer
 
@@ -39,7 +39,7 @@ func hostgroups (config *config.Config) (*bytes.Buffer) {
   return(&hostgroups)
 }
 
-func group_vars (config *config.Config) (*bytes.Buffer) {
+func group_vars (config *config.Cell) (*bytes.Buffer) {
 
   var group_vars bytes.Buffer
 

@@ -34,7 +34,7 @@ resource "openstack_networking_subnet_v2" "{{.Name}}" {
 }
 `
 
-func network(config *config.Config) (*bytes.Buffer, error) {
+func network(config *config.Cell) (*bytes.Buffer, error) {
 
   var networks bytes.Buffer
 
@@ -49,7 +49,7 @@ func network(config *config.Config) (*bytes.Buffer, error) {
   return &networks, nil
 }
 
-func router(config *config.Config) (*bytes.Buffer, error) {
+func router(config *config.Cell) (*bytes.Buffer, error) {
 
   var routers bytes.Buffer
 
@@ -64,7 +64,7 @@ func router(config *config.Config) (*bytes.Buffer, error) {
   return &routers, nil
 }
 
-func router_interface(config *config.Config) (*bytes.Buffer, error) {
+func router_interface(config *config.Cell) (*bytes.Buffer, error) {
 
   var routers_interfaces bytes.Buffer
 
@@ -79,7 +79,7 @@ func router_interface(config *config.Config) (*bytes.Buffer, error) {
   return &routers_interfaces, nil
 }
 
-func subnet(config *config.Config) (*bytes.Buffer, error) {
+func subnet(config *config.Cell) (*bytes.Buffer, error) {
 
   var subnets bytes.Buffer
 

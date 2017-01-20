@@ -10,7 +10,7 @@ const require_tmpl = `- src: {{.Source}}
 
 `
 
-func requirements (config *config.Config) (*bytes.Buffer, error) {
+func requirements (config *config.Cell) (*bytes.Buffer, error) {
 
   var requirements bytes.Buffer
 

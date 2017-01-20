@@ -6,7 +6,7 @@ import (
   "../../utils/"
 )
 
-func Apply(SystemConfig *config.Config) error {
+func Apply(SystemConfig *config.SystemConfig) error {
 
   cmd,_,stderr := utils.RunCmd(SystemConfig.Commands.Terraform, "apply")
 
@@ -17,7 +17,7 @@ func Apply(SystemConfig *config.Config) error {
   return nil
 }
 
-func Validate(SystemConfig *config.Config) error {
+func Validate(SystemConfig *config.SystemConfig) error {
 
   cmd,_,stderr := utils.RunCmd(SystemConfig.Commands.Terraform, "validate")
 
