@@ -2,7 +2,7 @@ package config
 
 import (
   "encoding/json"
-  "log"
+  log "github.com/Sirupsen/logrus"
   "os"
 )
 
@@ -14,6 +14,9 @@ type Commands struct {
 
 type WebService struct {
   ApiPrefix     string
+  BodyLimit     int64
+  Address       string
+  Port          int
 }
 
 type Files struct {
@@ -28,6 +31,7 @@ type SystemConfig struct {
   Commands      Commands
   Files         Files
   Log           *log.Logger
+  WebService    WebService
 }
 
 func ReadFile(configFilePath string) *SystemConfig {
@@ -43,15 +47,17 @@ func ReadFile(configFilePath string) *SystemConfig {
                                       AnsiblePlaybook:      "site.yml",
                                       AnsibleRequirements:  "requirements.yml",
                                       TerraformSite:        "site.tf",
-                                      TerraformState:        "terraform.tfstate"}}
+                                      TerraformState:        "terraform.tfstate"},
+                        WebService: WebService{ApiPrefix:   "/v1",
+                                                BodyLimit:   1048576,
+                                                Address:    "0.0.0.0",
+                                                Port:       8080}}
 
   err = decoder.Decode(&config)
 
   if err != nil {
     log.Fatalf("Can't decode config file(%s), %s", configFilePath, err)
   }
-
-  config.Log = log.New(os.Stderr, "roles-ws: ", log.Llongfile)
 
   return &config
 }
