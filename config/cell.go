@@ -2,8 +2,8 @@ package config
 
 import (
   "encoding/json"
-  "log"
-  "os"
+  "fmt"
+  "io"
 )
 
 type Provider struct {
@@ -70,23 +70,15 @@ type Cell struct {
   RoutersInterfaces []*RouterInterface  `json:"routers_interfaces"`
 }
 
-func ReadJson(configFilePath string) *Cell {
+func DecodeJson(r io.Reader) (*Cell, error) {
 
   var config Cell
 
-  file, err := os.Open(configFilePath)
-  if err != nil {
-    log.Fatalf("Can't open config file(%s), %s", configFilePath, err)
-  }
-  defer file.Close()
-
-  decoder := json.NewDecoder(file)
+  decoder := json.NewDecoder(r)
 
   if err := decoder.Decode(&config); err != nil {
-    log.Fatalf("Can't decode config file(%s), %s", configFilePath, err)
+    return nil, fmt.Errorf("Can't decode request, %s", err)
   }
 
-  //config.Log = log.New(os.Stderr, "roles-ws: ", log.Llongfile)
-  //fmt.Printf("%+v", config)
-  return &config
+  return &config, nil
 }
