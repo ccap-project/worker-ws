@@ -1,23 +1,40 @@
 package main
 
 import (
-  "fmt"
+  "flag"
   "os"
-
+  log "github.com/Sirupsen/logrus"
   "./config/"
-  "./ansible"
-  "./terraform"
   "./webservice"
 )
 
+var SystemConfig *config.SystemConfig
+
 func main() {
 
-  system := config.ReadFile("etc/system.conf")
+  debugFlag := flag.Bool("debug", false, "enable debug log")
 
+  flag.Parse()
+
+  //log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+  //config.Log = log.New(os.Stderr, "config-ws: ", log.LstdFlags | log.Lshortfile)
+  SystemConfig = config.ReadFile("etc/system.conf")
+
+  SystemConfig.Log = log.New()
+  SystemConfig.Log.Out = os.Stderr
+
+  if *debugFlag {
+    SystemConfig.Log.Level = log.DebugLevel
+    SystemConfig.Log.Debug("Log level debug activated")
+
+  } else {
+    SystemConfig.Log.Info("Log level info")
+  }
+
+  webservice.Start(SystemConfig)
 
   //ReadJson("example.json")
 
-  exit(0)
-
-
+  os.Exit(0)
 }
