@@ -1,9 +1,11 @@
-package "webservice"
+package webservice
 
 import (
-  "encoding/json"
+  "fmt"
   "net/http"
+  "os"
   "time"
+  "github.com/gorilla/handlers"
   "github.com/gorilla/mux"
 
   "../config/"
@@ -11,25 +13,26 @@ import (
 
 func Start(SystemConfig *config.SystemConfig) {
   main_router := mux.NewRouter()
-    api_router := main_router.PathPrefix(SystemConfig.WebService.ApiPrefix).Subrouter()
+  api_router := main_router.PathPrefix(SystemConfig.WebService.ApiPrefix).Subrouter()
 
-    // Deploy endpoints
-    api_router.Methods("POST").Path("/deploy/infrastructure").HandlerFunc(terraform)
+  // Deploy endpoints
+  api_router.Methods("POST").Path("/deploy").HandlerFunc(deploy(SystemConfig))
 
-    // Role endpoints
-    api_router.Methods("GET").Path("/roles").HandlerFunc(ListRoles)
-    api_router.Methods("GET").Path("/roles/{role_id}/params/{version}").HandlerFunc(GetRoleParams)
-    api_router.Methods("GET").Path("/roles/{role_id}/meta/{version}").HandlerFunc(GetRoleMeta)
+  api_router.Methods("POST").Path("/infrastructure/check").HandlerFunc(checkInfrastructure(SystemConfig))
+  api_router.Methods("POST").Path("/infrastructure/deploy").HandlerFunc(deployInfrastructure(SystemConfig))
 
-    server := &http.Server{
-            Handler:      main_router,
-            Addr:         "0.0.0.0:8000",
-            // Good practice: enforce timeouts for servers you create!
-            WriteTimeout: 15 * time.Second,
-            ReadTimeout:  15 * time.Second,
-        }
+  //api_router.Methods("POST").Path("/configuration/check").HandlerFunc(ConfigurationCheck)
+  //api_router.Methods("POST").Path("/configuration/deploy").HandlerFunc(ConfigurationDeploy)
 
-    //role.Init(SystemConfig)
+  server := &http.Server{
+      Handler:      handlers.CombinedLoggingHandler(os.Stdout, main_router),
+      Addr:         fmt.Sprintf("%s:%d", SystemConfig.WebService.Address, SystemConfig.WebService.Port),
+      // Good practice: enforce timeouts for servers you create!
+      WriteTimeout: 15 * time.Second,
+      ReadTimeout:  15 * time.Second,
+  }
 
-    SystemConfig.Log.Fatal(server.ListenAndServe())
+  SystemConfig.Log.Debugf("Starting socket on %s:%d", SystemConfig.WebService.Address, SystemConfig.WebService.Port)
+
+  SystemConfig.Log.Fatal(server.ListenAndServe())
 }
