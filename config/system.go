@@ -6,6 +6,12 @@ import (
   "os"
 )
 
+type GitlabCfg struct {
+  Url                   string
+  Token                 string
+  TLSInsecureSkipVerify bool `json:",string"`
+}
+
 type Commands struct {
   Terraform       string
   Ansible         string
@@ -25,11 +31,13 @@ type Files struct {
   AnsibleRequirements string
   TerraformSite       string
   TerraformState      string
+  TempDir             string
 }
 
 type SystemConfig struct {
   Commands      Commands
   Files         Files
+  Gitlab        GitlabCfg
   Log           *log.Logger
   WebService    WebService
 }
@@ -47,7 +55,8 @@ func ReadFile(configFilePath string) *SystemConfig {
                                       AnsiblePlaybook:      "site.yml",
                                       AnsibleRequirements:  "requirements.yml",
                                       TerraformSite:        "site.tf",
-                                      TerraformState:        "terraform.tfstate"},
+                                      TerraformState:        "terraform.tfstate",
+                                      TempDir:              "tmp/"},
                         WebService: WebService{ApiPrefix:   "/v1",
                                                 BodyLimit:   1048576,
                                                 Address:    "0.0.0.0",
