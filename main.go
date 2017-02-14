@@ -1,41 +1,36 @@
 package main
 
-import (
-	"flag"
-	"os"
-
-	"./config/"
-	"./webservice"
-	log "github.com/Sirupsen/logrus"
-)
-
-var SystemConfig *config.SystemConfig
+import "./config/"
+import "./webservice/"
 
 func main() {
 
-	debugFlag := flag.Bool("debug", false, "enable debug log")
+	//var err error
+	//var terraform terraform.Serialize
 
-	flag.Parse()
+	SystemConfig := config.ReadFile("etc/system.conf")
 
-	//log.SetFlags(log.LstdFlags | log.Lshortfile)
-
-	//config.Log = log.New(os.Stderr, "config-ws: ", log.LstdFlags | log.Lshortfile)
-	SystemConfig = config.ReadFile("etc/system.conf")
-
-	SystemConfig.Log = log.New()
-	SystemConfig.Log.Out = os.Stderr
-
-	if *debugFlag {
-		SystemConfig.Log.Level = log.DebugLevel
-		SystemConfig.Log.Debug("Log level debug activated")
-
-	} else {
-		SystemConfig.Log.Info("Log level info")
-	}
+	SystemConfig.Log.Debugf("GitlabUrl(%s) GitlabToken(%s)", SystemConfig.Gitlab.Url, SystemConfig.Gitlab.Token)
 
 	webservice.Start(SystemConfig)
 
-	//ReadJson("example.json")
+	/*
+		terraformSerializer := reflect.ValueOf(&terraform).MethodByName(SystemConfig.Provider.Name)
 
-	os.Exit(0)
+		if !terraformSerializer.IsValid() {
+			fmt.Printf("Terraform serializer for provider(%s) is not supported !\n", SystemConfig.Provider.Name)
+			os.Exit(-1)
+		}
+
+		err = terraformSerializer.Call([]reflect.Value{reflect.ValueOf(SystemConfig)})
+		if err != nil {
+			fmt.Println("Failure serializing Terraform %s file, %v", SystemConfig.Provider.Name, err)
+			os.Exit(-1)
+		}
+
+		err = ansible.Serializer(SystemConfig)
+		if err != nil {
+			fmt.Println("Failure serializing Ansible Openstack file, ", err)
+		}
+	*/
 }

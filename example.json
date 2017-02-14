@@ -1,4 +1,6 @@
 {
+  "name": "freebsd-ports",
+  "customer_name": "skyfaster",
   "provider": {
     "name": "Openstack",
     "region": "br-sp1",
@@ -8,23 +10,67 @@
     "auth_url": "https://keystone.br-sp1.openstack.uolcloud.com.br:5000/v2.0"
   },
   "routers": [
-    {"name": "router1", "admin_state": "down"}
+    {
+      "name": "router1",
+      "admin_state": "down"
+    }
   ],
   "routers_interfaces": [
-    {"name": "int-net-be", "router": "router1", "subnet": "subnet-be"}
+    {
+      "name": "int-net-be",
+      "router": "router1",
+      "subnet": "subnet-be"
+    }
   ],
   "networks": [
-    {"name": "net-web", "admin_state": "up" },
-    {"name": "net-be" }
+    {
+      "name": "net-web",
+      "admin_state": "up"
+    },
+    {
+      "name": "net-be"
+    }
   ],
   "subnets": [
-    {"name": "subnet-web", "admin_state": "up", "network": "net-web", "cidr": "192.168.200.0/24" },
-    {"name": "subnet-be", "network": "net-be", "cidr": "192.168.100.0/24" }
+    {
+      "name": "subnet-web",
+      "admin_state": "up",
+      "network": "net-web",
+      "cidr": "192.168.200.0/24"
+    },
+    {
+      "name": "subnet-be",
+      "network": "net-be",
+      "cidr": "192.168.100.0/24"
+    }
   ],
-  "hosts": [
-  ],
+  "hosts": [],
   "hostgroups": [
-    {"name": "graphite-web","image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd", "flavor": "small.2GB", "count": "3", "network": "net-web", "vars": [{"graphite_web_port": "8080"}], "roles": [{"name":"nginx", "src": "http://gitlab.uoldiveo.intranet", "version": "1.0.0"}] },
-    {"name": "graphite-be", "image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd", "flavor": "small.2GB", "count": "10", "network": "net-be" }
+    {
+      "name": "graphite-web",
+      "image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd",
+      "flavor": "small.2GB",
+      "count": "3",
+      "network": "net-web",
+      "vars": [
+        {
+          "graphite_web_port": "8080"
+        }
+      ],
+      "roles": [
+        {
+          "name": "nginx",
+          "src": "http://gitlab.uoldiveo.intranet",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "name": "graphite-be",
+      "image": "33a3995d-c9a5-45de-ab78-a27cccebd9fd",
+      "flavor": "small.2GB",
+      "count": "10",
+      "network": "net-be"
+    }
   ]
 }

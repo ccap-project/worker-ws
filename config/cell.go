@@ -6,6 +6,20 @@ import (
 	"io"
 )
 
+type RepoEnv struct {
+	Name string
+	Dir  string
+	Url  string
+}
+
+type CustomerEnv struct {
+	Ansible   *RepoEnv
+	Terraform *RepoEnv
+}
+
+/*
+ * Bellow json received data
+ */
 type Provider struct {
 	Name       string `json:"name"`
 	Region     string `json:"region"`
@@ -61,8 +75,9 @@ type Subnet struct {
 }
 
 type Cell struct {
-	CustomerName      string             `json:"customer_name"`
-	Name              string             `json:"name"`
+	CustomerName      string `json:"customer_name"`
+	Name              string `json:"name"`
+	Environment       CustomerEnv
 	Provider          *Provider          `json:"provider"`
 	Hosts             []*Host            `json:"hosts"`
 	Hostgroups        []*Hostgroup       `json:"hostgroups"`

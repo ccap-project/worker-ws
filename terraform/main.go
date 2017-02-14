@@ -10,7 +10,7 @@ import (
 type Terraform interface {
 	Apply(*config.SystemConfig, string) error
 	ReadState(*config.Cell, string) error
-	Serialize(*config.SystemConfig, *config.Cell, string) error
+	Serialize(*config.SystemConfig, *config.Cell) error
 	Validate(*config.SystemConfig, string) error
 }
 
@@ -23,7 +23,7 @@ func Init(provider string) Terraform {
 	return nil
 }
 
-func Check(SystemConfig *config.SystemConfig, cell *config.Cell, repo string) error {
+func Check(SystemConfig *config.SystemConfig, cell *config.Cell) error {
 
 	Env := Init(cell.Provider.Name)
 
@@ -32,19 +32,19 @@ func Check(SystemConfig *config.SystemConfig, cell *config.Cell, repo string) er
 	}
 
 	SystemConfig.Log.Debug("Serializing")
-	if err := Env.Serialize(SystemConfig, cell, repo); err != nil {
+	if err := Env.Serialize(SystemConfig, cell); err != nil {
 		return fmt.Errorf("Failure serializing Terraform Openstack file, %v", err)
 	}
 
 	SystemConfig.Log.Debug("Validating")
-	if err := Env.Validate(SystemConfig, repo); err != nil {
+	if err := Env.Validate(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
 	}
 
 	return nil
 }
 
-func Deploy(SystemConfig *config.SystemConfig, cell *config.Cell, repo string) error {
+func Deploy(SystemConfig *config.SystemConfig, cell *config.Cell) error {
 
 	Env := Init(cell.Provider.Name)
 
@@ -53,17 +53,17 @@ func Deploy(SystemConfig *config.SystemConfig, cell *config.Cell, repo string) e
 	}
 
 	SystemConfig.Log.Debug("Serializing")
-	if err := Env.Serialize(SystemConfig, cell, repo); err != nil {
+	if err := Env.Serialize(SystemConfig, cell); err != nil {
 		return fmt.Errorf("Failure serializing Terraform Openstack file, %v", err)
 	}
 
 	SystemConfig.Log.Debug("Validating")
-	if err := Env.Validate(SystemConfig, repo); err != nil {
+	if err := Env.Validate(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
 	}
 
 	SystemConfig.Log.Debug("Applying")
-	if err := Env.Apply(SystemConfig, repo); err != nil {
+	if err := Env.Apply(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
 		return fmt.Errorf("Failure applying Terraform, %v", err)
 	}
 

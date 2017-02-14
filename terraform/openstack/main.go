@@ -28,10 +28,11 @@ func (o *Openstack) Validate(system *config.SystemConfig, dir string) error {
 	return terraformcommon.Validate(system, dir)
 }
 
-func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell, dir string) error {
+func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) error {
 
 	var tf bytes.Buffer
-	terraformSite := fmt.Sprintf("%s/%s", dir, system.Files.TerraformSite)
+	fmt.Println(cell.Environment.Terraform)
+	terraformSite := fmt.Sprintf("%s/%s", cell.Environment.Terraform.Dir, system.Files.TerraformSite)
 
 	provider, err := provider(cell)
 	if err != nil {
