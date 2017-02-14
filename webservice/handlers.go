@@ -11,10 +11,14 @@ import (
 	"../terraform"
 )
 
-func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter, *http.Request, *config.SystemConfig, *config.Cell, string)) http.HandlerFunc {
+func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter, *http.Request, *config.SystemConfig, *config.Cell)) http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		cell, err := config.DecodeJson(io.LimitReader(r.Body, SystemConfig.WebService.BodyLimit))
+
+		SystemConfig.Log.Debugf("Cell(%v)", cell)
+
 		if err != nil {
 			SystemConfig.Log.Error("checkInfrastructure failed, ", err)
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -24,9 +28,11 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 			}
 		}
 
-		repoPath, err := repo.BuildInfrastructureEnv(SystemConfig, cell.CustomerName, cell.Name)
+		err = repo.Build(SystemConfig, cell)
+
 		if err != nil {
 			SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+			panic(err)
 		}
 
 		/*
@@ -36,7 +42,7 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 			}
 		*/
 
-		fn(w, r, SystemConfig, cell, repoPath)
+		fn(w, r, SystemConfig, cell)
 	}
 }
 
@@ -70,11 +76,11 @@ func deploy(SystemConfig *config.SystemConfig) http.HandlerFunc {
 }
 */
 
-func checkInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell, repoPath string) {
+func checkInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
 
 	SystemConfig.Log.Debugf("running checkInfrastructure CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
 
-	if err := terraform.Check(SystemConfig, cell, repoPath); err != nil {
+	if err := terraform.Check(SystemConfig, cell); err != nil {
 		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -89,11 +95,49 @@ func checkInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *c
 	}
 }
 
-func deployInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell, repoPath string) {
+func deployInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
 
 	SystemConfig.Log.Debugf("running deployInfrastructure CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
 
-	if err := terraform.Deploy(SystemConfig, cell, repoPath); err != nil {
+	if err := terraform.Deploy(SystemConfig, cell); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(422) // unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			panic(err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
+		panic(err)
+	}
+}
+
+func checkConfiguration(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+
+	SystemConfig.Log.Debugf("running checkConfiguration CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
+
+	if err := terraform.Check(SystemConfig, cell); err != nil {
+		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(422) // unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			panic(err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
+		panic(err)
+	}
+}
+
+func deployConfiguration(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+
+	SystemConfig.Log.Debugf("running checkInfrastructure CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
+
+	if err := terraform.Check(SystemConfig, cell); err != nil {
+		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
