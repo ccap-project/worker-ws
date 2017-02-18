@@ -10,6 +10,7 @@ type RepoEnv struct {
 	Name string
 	Dir  string
 	Url  string
+	Env  []string
 }
 
 type CustomerEnv struct {
