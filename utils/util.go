@@ -1,11 +1,14 @@
 package utils
 
-import "bufio"
-import "bytes"
-import "fmt"
-import "text/template"
-import "log"
-import "os/exec"
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"log"
+	"os/exec"
+	"path/filepath"
+	"text/template"
+)
 
 //import "io/ioutil"
 
@@ -36,12 +39,15 @@ func Template(tmpl string, data interface{}) (*bytes.Buffer, error) {
 /*
  * Run command, return stdout scanner and cmd handler
  */
-func RunCmd(arg ...string) (*exec.Cmd, *bufio.Scanner, *bytes.Buffer) {
+func RunCmd(pwd string, env []string, arg ...string) (*exec.Cmd, *bufio.Scanner, *bytes.Buffer) {
 
 	var stderr bytes.Buffer
-	//log.Println(arg)
+	log.Println(arg)
 
 	cmd := exec.Command(arg[0], arg[1:]...)
+
+	cmd.Dir = filepath.Dir(pwd)
+	cmd.Env = env
 
 	cmd.Stderr = &stderr
 	stdout, err_stdout := cmd.StdoutPipe()

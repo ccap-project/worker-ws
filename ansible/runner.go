@@ -2,36 +2,14 @@ package ansible
 
 import (
 	"errors"
-	"fmt"
-	"path/filepath"
-	"strings"
 
 	"../config"
 	"../utils"
 )
 
-func RolesInstall(system *config.SystemConfig, repoPath string) error {
+func RolesInstall(system *config.SystemConfig, cell *config.Cell) error {
 
-	rolePath := fmt.Sprintf("%s/%s", repoPath, "roles")
-	cmd, _, stderr := utils.RunCmd(system.Commands.AnsibleGalaxy, "install", "--roles-path", rolePath, "-r", system.Files.AnsibleRequirements)
-
-	if err_wait := cmd.Wait(); err_wait != nil {
-		return errors.New(stderr.String())
-	}
-
-	return nil
-}
-
-func Run(system *config.SystemConfig, repoPath string) error {
-
-	cmd, _, stderr := utils.RunCmd(system.Commands.Ansible, "-i", "hosts", system.Files.AnsiblePlaybook)
-
-	if !strings.HasSuffix(repoPath, "/") {
-		repoPath = repoPath + "/"
-	}
-
-	cmd.Env = []string{}
-	cmd.Dir = filepath.Dir(repoPath)
+	cmd, _, stderr := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.AnsibleGalaxy, "install", "-r", system.Files.AnsibleRequirements)
 
 	if err_wait := cmd.Wait(); err_wait != nil {
 		return errors.New(stderr.String())
@@ -40,9 +18,20 @@ func Run(system *config.SystemConfig, repoPath string) error {
 	return nil
 }
 
-func SyntaxCheck(system *config.SystemConfig, rolePath string) error {
+func Run(system *config.SystemConfig, cell *config.Cell) error {
 
-	cmd, _, stderr := utils.RunCmd(system.Commands.Ansible, "-i", "hosts", "--syntax-check", system.Files.AnsiblePlaybook)
+	cmd, _, stderr := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, system.Files.AnsiblePlaybook)
+
+	if err_wait := cmd.Wait(); err_wait != nil {
+		return errors.New(stderr.String())
+	}
+
+	return nil
+}
+
+func SyntaxCheck(system *config.SystemConfig, cell *config.Cell) error {
+
+	cmd, _, stderr := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, "--syntax-check", system.Files.AnsiblePlaybook)
 
 	if err_wait := cmd.Wait(); err_wait != nil {
 		return errors.New(stderr.String())

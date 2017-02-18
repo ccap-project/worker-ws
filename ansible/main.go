@@ -43,11 +43,11 @@ func Check(system *config.SystemConfig, cell *config.Cell) error {
 		return fmt.Errorf("Failure serializing Ansible Openstack file, %v", err)
 	}
 
-	if err := RolesInstall(system, cell.Environment.Ansible.Dir); err != nil {
+	if err := RolesInstall(system, cell); err != nil {
 		return fmt.Errorf("Failure downloading Ansible galaxy roles, %v", err)
 	}
 
-	if err := SyntaxCheck(system, cell.Environment.Ansible.Dir); err != nil {
+	if err := SyntaxCheck(system, cell); err != nil {
 		return fmt.Errorf("Failure checking Ansible file, %v", err)
 	}
 
@@ -60,7 +60,7 @@ func Deploy(system *config.SystemConfig, cell *config.Cell) error {
 		return err
 	}
 
-	if err := Run(system, cell.Environment.Ansible.Dir); err != nil {
+	if err := Run(system, cell); err != nil {
 		return fmt.Errorf("Failure running Ansible, %v", err)
 	}
 
