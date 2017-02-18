@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"../ansible"
 	"../config"
 	"../repo"
 	"../terraform"
@@ -113,11 +114,11 @@ func deployInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *
 	}
 }
 
-func checkConfiguration(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+func checkApplication(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
 
 	SystemConfig.Log.Debugf("running checkConfiguration CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
 
-	if err := terraform.Check(SystemConfig, cell); err != nil {
+	if err := ansible.Check(SystemConfig, cell); err != nil {
 		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
