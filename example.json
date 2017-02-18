@@ -59,8 +59,8 @@
       ],
       "roles": [
         {
-          "name": "nginx",
-          "src": "http://gitlab.uoldiveo.intranet",
+          "name": "dspam",
+          "src": "https://gitlab.home/ansible-roles/dspam.git",
           "version": "1.0.0"
         }
       ]
