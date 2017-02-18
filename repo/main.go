@@ -42,6 +42,16 @@ func initialize(SystemConfig *config.SystemConfig, CellName string, CustomerName
 	projectPath := fmt.Sprintf("%s/%s", CustomerName, RepoEnv.Name)
 	RepoEnv.Dir = fmt.Sprintf("%s/%s/%s/%s/", SystemConfig.Files.TempDir, CustomerName, CellName, RepoType)
 
+	switch RepoType {
+	case "ansible":
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_INVENTORY=%s/%s", RepoEnv.Dir, SystemConfig.Files.AnsibleHosts))
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_ROLES_PATH=%s/roles", RepoEnv.Dir))
+		RepoEnv.Env = append(RepoEnv.Env, "ANSIBLE_GALAXY_IGNORE=true")
+		RepoEnv.Env = append(RepoEnv.Env, "GIT_SSL_NO_VERIFY=true")
+	}
+
+	SystemConfig.Log.Debugf(fmt.Sprintf("Env(%s)", RepoEnv.Env))
+
 	Gitlab, err := gitlab.Connect(SystemConfig.Gitlab.Url, SystemConfig.Gitlab.Token, SystemConfig.Gitlab.TLSInsecureSkipVerify)
 
 	if err != nil {
@@ -109,6 +119,8 @@ func initialize(SystemConfig *config.SystemConfig, CellName string, CustomerName
 		if err != nil {
 			return nil, fmt.Errorf("cloning gitlab project %s, %v", projectPath, err)
 		}
+
+		os.MkdirAll(RepoEnv.Dir+"/roles", 0750)
 	}
 
 	return RepoEnv, nil
