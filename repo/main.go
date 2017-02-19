@@ -9,19 +9,17 @@ import (
 	"../gitlab/"
 )
 
-func Build(SystemConfig *config.SystemConfig, cell *config.Cell) error {
+func Build(ctx *config.RequestContext) error {
 
 	var err error
 
-	cell.Environment.Terraform, err = initialize(SystemConfig, cell.Name, cell.CustomerName, "terraform")
-
-	fmt.Println(cell.Environment.Terraform)
+	ctx.Cell.Environment.Terraform, err = initialize(ctx, "terraform")
 
 	if err != nil {
 		return err
 	}
 
-	cell.Environment.Ansible, err = initialize(SystemConfig, cell.Name, cell.CustomerName, "ansible")
+	ctx.Cell.Environment.Ansible, err = initialize(ctx, "ansible")
 
 	if err != nil {
 		return err
@@ -30,53 +28,53 @@ func Build(SystemConfig *config.SystemConfig, cell *config.Cell) error {
 	return nil
 }
 
-func initialize(SystemConfig *config.SystemConfig, CellName string, CustomerName string, RepoType string) (*config.RepoEnv, error) {
+func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, error) {
 
 	var Project *gitlab.Project
 
-	SystemConfig.Log.Debugf("CellName(%s) CustomerName(%s) RepoType(%s)", CellName, CustomerName, RepoType)
+	ctx.Log.Debugf("RepoType(%s)", RepoType)
 
 	RepoEnv := new(config.RepoEnv)
 
-	RepoEnv.Name = fmt.Sprintf("%s-%s", CellName, RepoType)
-	projectPath := fmt.Sprintf("%s/%s", CustomerName, RepoEnv.Name)
-	RepoEnv.Dir = fmt.Sprintf("%s/%s/%s/%s/", SystemConfig.Files.TempDir, CustomerName, CellName, RepoType)
+	RepoEnv.Name = fmt.Sprintf("%s-%s", ctx.Cell.Name, RepoType)
+	projectPath := fmt.Sprintf("%s/%s", ctx.Cell.CustomerName, RepoEnv.Name)
+	RepoEnv.Dir = fmt.Sprintf("%s/%s/%s/%s/", ctx.SystemConfig.Files.TempDir, ctx.Cell.CustomerName, ctx.Cell.Name, RepoType)
 
 	switch RepoType {
 	case "ansible":
-		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_INVENTORY=%s/%s", RepoEnv.Dir, SystemConfig.Files.AnsibleHosts))
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_INVENTORY=%s/%s", RepoEnv.Dir, ctx.SystemConfig.Files.AnsibleHosts))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_ROLES_PATH=%s/roles", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, "ANSIBLE_GALAXY_IGNORE=true")
 		RepoEnv.Env = append(RepoEnv.Env, "GIT_SSL_NO_VERIFY=true")
 	}
 
-	SystemConfig.Log.Debugf(fmt.Sprintf("Env(%s)", RepoEnv.Env))
+	ctx.Log.Debugf(fmt.Sprintf("Env(%s)", RepoEnv.Env))
 
-	Gitlab, err := gitlab.Connect(SystemConfig.Gitlab.Url, SystemConfig.Gitlab.Token, SystemConfig.Gitlab.TLSInsecureSkipVerify)
+	Gitlab, err := gitlab.Connect(ctx.SystemConfig.Gitlab.Url, ctx.SystemConfig.Gitlab.Token, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify)
 
 	if err != nil {
-		return nil, fmt.Errorf("connecting to gitlab %s, %v", SystemConfig.Gitlab.Url, err)
+		return nil, fmt.Errorf("connecting to gitlab %s, %v", ctx.SystemConfig.Gitlab.Url, err)
 	}
 
-	Group, res, err := Gitlab.Groups.GetGroup(CustomerName)
+	Group, res, err := Gitlab.Groups.GetGroup(ctx.Cell.CustomerName)
 
 	if err != nil {
 		if res == nil {
-			return nil, fmt.Errorf("getting gitlab group %s from %s, %v", CustomerName, SystemConfig.Gitlab.Url, err)
+			return nil, fmt.Errorf("getting gitlab group %s from %s, %v", ctx.Cell.CustomerName, ctx.SystemConfig.Gitlab.Url, err)
 		}
 
 		if res.StatusCode != 404 {
-			return nil, fmt.Errorf("getting gitlab group %s, %v", CustomerName, err)
+			return nil, fmt.Errorf("getting gitlab group %s, %v", ctx.Cell.CustomerName, err)
 		}
 	}
 
 	if Group == nil || len(Group.Name) == 0 {
-		Group, err = gitlab.CreateGroup(Gitlab, CustomerName, CustomerName)
+		Group, err = gitlab.CreateGroup(Gitlab, ctx.Cell.CustomerName, ctx.Cell.CustomerName)
 
 		if err != nil {
-			return nil, fmt.Errorf("creating gitlab group %s, %v", CustomerName, err)
+			return nil, fmt.Errorf("creating gitlab group %s, %v", ctx.Cell.CustomerName, err)
 		}
-		SystemConfig.Log.Infof("Created group(%s)", CustomerName)
+		ctx.Log.Infof("Created group(%s)", ctx.Cell.CustomerName)
 	} else {
 		for _, v := range *Group.Projects {
 			if v.Name == RepoEnv.Name {
@@ -86,20 +84,20 @@ func initialize(SystemConfig *config.SystemConfig, CellName string, CustomerName
 		}
 	}
 
-	SystemConfig.Log.Debugf("Project (%s)", RepoEnv.Name)
+	ctx.Log.Debugf("Project (%s)", RepoEnv.Name)
 	if Project == nil {
 		Project, err = gitlab.CreateProject(Gitlab, RepoEnv.Name, Group.ID)
 
 		if err != nil {
 			return nil, fmt.Errorf("creating gitlab project %s, %v", projectPath, err)
 		}
-		SystemConfig.Log.Infof("Created project(%s)", projectPath)
+		ctx.Log.Infof("Created project(%s)", projectPath)
 	}
 
 	d, err := os.Stat(RepoEnv.Dir)
 
 	if err == nil && d.IsDir() {
-		SystemConfig.Log.Infof("Pulling %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
+		ctx.Log.Infof("Pulling %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
 
 		git.Pull(RepoEnv.Dir, Project.HTTPURLToRepo)
 
@@ -113,9 +111,9 @@ func initialize(SystemConfig *config.SystemConfig, CellName string, CustomerName
 			return nil, fmt.Errorf("Creating %s, %v", RepoEnv.Dir, err)
 		}
 
-		SystemConfig.Log.Infof("Cloning %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
+		ctx.Log.Infof("Cloning %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
 
-		err = git.Clone(RepoEnv.Dir, Project.HTTPURLToRepo, SystemConfig.Gitlab.TLSInsecureSkipVerify)
+		err = git.Clone(RepoEnv.Dir, Project.HTTPURLToRepo, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify)
 		if err != nil {
 			return nil, fmt.Errorf("cloning gitlab project %s, %v", projectPath, err)
 		}

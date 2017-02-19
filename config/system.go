@@ -57,6 +57,7 @@ func ReadFile(configFilePath string) *SystemConfig {
 			Port:      8080}}
 
 	config.Log = log.New()
+	config.Log.Formatter = &log.JSONFormatter{}
 
 	file, err := os.Open(configFilePath)
 	if err != nil {

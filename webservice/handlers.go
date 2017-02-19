@@ -6,33 +6,51 @@ import (
 	"io"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
+
 	"../ansible"
 	"../config"
 	"../repo"
 	"../terraform"
+	"../utils"
 )
 
-func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter, *http.Request, *config.SystemConfig, *config.Cell)) http.HandlerFunc {
+func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter, *http.Request, *config.RequestContext)) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		cell, err := config.DecodeJson(io.LimitReader(r.Body, SystemConfig.WebService.BodyLimit))
+		var err error
 
-		SystemConfig.Log.Debugf("Cell(%v)", cell)
+		ctx := new(config.RequestContext)
+
+		ctx.SystemConfig = SystemConfig
+
+		ctx.RunID, err = utils.GetULID()
+
+		ctx.Log = SystemConfig.Log.WithFields(log.Fields{"rid": ctx.RunID})
+		// XXX: Log RemoteIP
+
+		ctx.Cell, err = config.DecodeJson(io.LimitReader(r.Body, SystemConfig.WebService.BodyLimit))
+
+		ctx.Log.Debugf("Cell(%v)", ctx.Cell)
 
 		if err != nil {
-			SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+			ctx.Log.Error("checkInfrastructure failed, ", err)
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(422) // unprocessable entity
-			if err := json.NewEncoder(w).Encode(err); err != nil {
+			if err = json.NewEncoder(w).Encode(err); err != nil {
 				panic(err)
 			}
 		}
 
-		err = repo.Build(SystemConfig, cell)
+		ctx.Log = SystemConfig.Log.WithFields(log.Fields{"rid": ctx.RunID,
+			"cell":     ctx.Cell.Name,
+			"customer": ctx.Cell.CustomerName})
+
+		err = repo.Build(ctx)
 
 		if err != nil {
-			SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+			ctx.Log.Error("checkInfrastructure failed, ", err)
 			panic(err)
 		}
 
@@ -43,7 +61,7 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 			}
 		*/
 
-		fn(w, r, SystemConfig, cell)
+		fn(w, r, ctx)
 	}
 }
 
@@ -77,12 +95,12 @@ func deploy(SystemConfig *config.SystemConfig) http.HandlerFunc {
 }
 */
 
-func checkInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+func checkInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	SystemConfig.Log.Debugf("running checkInfrastructure CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
+	ctx.Log.Debugf("running checkInfrastructure CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
 
-	if err := terraform.Check(SystemConfig, cell); err != nil {
-		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+	if err := terraform.Check(ctx); err != nil {
+		ctx.Log.Error("checkInfrastructure failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
@@ -96,11 +114,11 @@ func checkInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *c
 	}
 }
 
-func deployInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+func deployInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	SystemConfig.Log.Debugf("running deployInfrastructure CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
+	ctx.Log.Debugf("running deployInfrastructure CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
 
-	if err := terraform.Deploy(SystemConfig, cell); err != nil {
+	if err := terraform.Deploy(ctx); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
@@ -114,12 +132,12 @@ func deployInfrastructure(w http.ResponseWriter, r *http.Request, SystemConfig *
 	}
 }
 
-func checkApplication(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	SystemConfig.Log.Debugf("running checkConfiguration CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
+	ctx.Log.Debugf("running checkApplication CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
 
-	if err := ansible.Check(SystemConfig, cell); err != nil {
-		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+	if err := ansible.Check(ctx); err != nil {
+		ctx.Log.Error("checkApplication failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
@@ -133,12 +151,12 @@ func checkApplication(w http.ResponseWriter, r *http.Request, SystemConfig *conf
 	}
 }
 
-func deployConfiguration(w http.ResponseWriter, r *http.Request, SystemConfig *config.SystemConfig, cell *config.Cell) {
+func deployApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	SystemConfig.Log.Debugf("running checkInfrastructure CustomerName(%s) cell(%s)", cell.CustomerName, cell.Name)
+	ctx.Log.Debugf("running deployApplication CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
 
-	if err := terraform.Check(SystemConfig, cell); err != nil {
-		SystemConfig.Log.Error("checkInfrastructure failed, ", err)
+	if err := terraform.Deploy(ctx); err != nil {
+		ctx.Log.Error("deployApplication failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {

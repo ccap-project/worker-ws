@@ -23,52 +23,57 @@ func Init(provider string) Terraform {
 	return nil
 }
 
-func Check(SystemConfig *config.SystemConfig, cell *config.Cell) error {
+func Check(ctx *config.RequestContext) error {
 
-	Env := Init(cell.Provider.Name)
+	Env := Init(ctx.Cell.Provider.Name)
 
 	if Env == nil {
-		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", cell.Provider.Name)
+		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Name)
 	}
 
-	SystemConfig.Log.Debug("Serializing")
-	if err := Env.Serialize(SystemConfig, cell); err != nil {
+	ctx.Log.Debug("Serializing")
+	if err := Env.Serialize(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure serializing Terraform Openstack file, %v", err)
 	}
 
-	SystemConfig.Log.Debug("Validating")
-	if err := Env.Validate(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
+	ctx.Log.Debug("Validating")
+	if err := Env.Validate(ctx.SystemConfig, ctx.Cell.Environment.Terraform.Dir); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
 	}
 
 	return nil
 }
 
-func Deploy(SystemConfig *config.SystemConfig, cell *config.Cell) error {
+func Deploy(ctx *config.RequestContext) error {
 
-	Env := Init(cell.Provider.Name)
+	Env := Init(ctx.Cell.Provider.Name)
 
 	if Env == nil {
-		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", cell.Provider.Name)
+		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Name)
 	}
 
-	SystemConfig.Log.Debug("Serializing")
-	if err := Env.Serialize(SystemConfig, cell); err != nil {
+	ctx.Log.Debug("Serializing")
+	if err := Env.Serialize(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure serializing Terraform Openstack file, %v", err)
 	}
 
-	SystemConfig.Log.Debug("Validating")
-	if err := Env.Validate(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
+	ctx.Log.Debug("Validating")
+	if err := Env.Validate(ctx.SystemConfig, ctx.Cell.Environment.Terraform.Dir); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
 	}
 
-	SystemConfig.Log.Debug("Applying")
-	if err := Env.Apply(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
+	ctx.Log.Debug("Applying")
+	if err := Env.Apply(ctx.SystemConfig, ctx.Cell.Environment.Terraform.Dir); err != nil {
 		return fmt.Errorf("Failure applying Terraform, %v", err)
 	}
 
-	SystemConfig.Log.Debug("Reading state")
-	if err := Env.ReadState(cell, SystemConfig.Files.TerraformState); err != nil {
+	//SystemConfig.Log.Debug("Persisting")
+	//if err := Persist(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
+	//	return fmt.Errorf("Failure applying Terraform, %v", err)
+	//}
+
+	ctx.Log.Debug("Reading state")
+	if err := Env.ReadState(ctx.Cell, ctx.SystemConfig.Files.TerraformState); err != nil {
 		return fmt.Errorf("Failure reading Terraform state, %v", err)
 	}
 

@@ -38,29 +38,29 @@ func Serializer(config *config.SystemConfig, cell *config.Cell) error {
 	return (nil)
 }
 
-func Check(system *config.SystemConfig, cell *config.Cell) error {
-	if err := Serializer(system, cell); err != nil {
+func Check(ctx *config.RequestContext) error {
+	if err := Serializer(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure serializing Ansible Openstack file, %v", err)
 	}
 
-	if err := RolesInstall(system, cell); err != nil {
+	if err := RolesInstall(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure downloading Ansible galaxy roles, %v", err)
 	}
 
-	if err := SyntaxCheck(system, cell); err != nil {
+	if err := SyntaxCheck(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure checking Ansible file, %v", err)
 	}
 
 	return nil
 }
 
-func Deploy(system *config.SystemConfig, cell *config.Cell) error {
+func Deploy(ctx *config.RequestContext) error {
 
-	if err := Check(system, cell); err != nil {
+	if err := Check(ctx); err != nil {
 		return err
 	}
 
-	if err := Run(system, cell); err != nil {
+	if err := Run(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure running Ansible, %v", err)
 	}
 

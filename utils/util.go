@@ -5,9 +5,13 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math/rand"
 	"os/exec"
 	"path/filepath"
 	"text/template"
+	"time"
+
+	"github.com/oklog/ulid"
 )
 
 //import "io/ioutil"
@@ -63,4 +67,11 @@ func RunCmd(pwd string, env []string, arg ...string) (*exec.Cmd, *bufio.Scanner,
 	stdout_scanner := bufio.NewScanner(stdout)
 
 	return cmd, stdout_scanner, &stderr
+}
+
+func GetULID() (ulid.ULID, error) {
+	t := time.Unix(1000000, 0)
+	entropy := rand.New(rand.NewSource(t.UnixNano()))
+
+	return ulid.New(ulid.Timestamp(t), entropy)
 }
