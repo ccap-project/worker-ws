@@ -73,8 +73,9 @@ func Deploy(ctx *config.RequestContext) error {
 	//}
 
 	ctx.Log.Debug("Reading state")
-	if err := Env.ReadState(ctx.Cell, ctx.SystemConfig.Files.TerraformState); err != nil {
-		return fmt.Errorf("Failure reading Terraform state, %v", err)
+
+	if err := Env.ReadState(ctx.Cell, ctx.Cell.Environment.Terraform.Dir+ctx.SystemConfig.Files.TerraformState); err != nil {
+		return fmt.Errorf("reading terraform state, %v", err)
 	}
 
 	return nil
