@@ -17,7 +17,7 @@ func Start(SystemConfig *config.SystemConfig) {
 	api_router := main_router.PathPrefix(SystemConfig.WebService.ApiPrefix).Subrouter()
 
 	// Deploy endpoints
-	//api_router.Methods("POST").Path("/deploy").HandlerFunc(deploy(SystemConfig))
+	api_router.Methods("POST").Path("/deploy").HandlerFunc(makeHandler(SystemConfig, deploy))
 
 	api_router.Methods("POST").Path("/infrastructure/check").HandlerFunc(makeHandler(SystemConfig, checkInfrastructure))
 	api_router.Methods("POST").Path("/infrastructure/deploy").HandlerFunc(makeHandler(SystemConfig, deployInfrastructure))

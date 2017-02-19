@@ -65,39 +65,15 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 	}
 }
 
-/*
-func deploy(SystemConfig *config.SystemConfig) http.HandlerFunc {
+func deploy(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		cell, err := config.DecodeJson(io.LimitReader(r.Body, SystemConfig.WebService.BodyLimit))
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(422) // unprocessable entity
-			if err := json.NewEncoder(w).Encode(err); err != nil {
-				panic(err)
-			}
-		}
-
-		if err := terraform.Deploy(SystemConfig, cell); err != nil {
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(422) // unprocessable entity
-			if err := json.NewEncoder(w).Encode(err); err != nil {
-				panic(err)
-			}
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
-			panic(err)
-		}
-	}
+	deployInfrastructure(w, r, ctx)
+	deployApplication(w, r, ctx)
 }
-*/
 
 func checkInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	ctx.Log.Debugf("running checkInfrastructure CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
+	ctx.Log.Debugf("running checkInfrastructure")
 
 	if err := terraform.Check(ctx); err != nil {
 		ctx.Log.Error("checkInfrastructure failed, ", err)
@@ -116,12 +92,15 @@ func checkInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.Req
 
 func deployInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	ctx.Log.Debugf("running deployInfrastructure CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
+	ctx.Log.Debugf("running deployInfrastructure")
 
 	if err := terraform.Deploy(ctx); err != nil {
+		ctx.Log.Errorf("deployInfrastructure failed, %v", err)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
+			ctx.Log.Errorf("deployInfrastructure failed, %v", err)
 			panic(err)
 		}
 	}
@@ -134,7 +113,7 @@ func deployInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.Re
 
 func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	ctx.Log.Debugf("running checkApplication CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
+	ctx.Log.Debugf("running checkApplication")
 
 	if err := ansible.Check(ctx); err != nil {
 		ctx.Log.Error("checkApplication failed, ", err)
@@ -153,9 +132,9 @@ func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.Reques
 
 func deployApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
-	ctx.Log.Debugf("running deployApplication CustomerName(%s) cell(%s)", ctx.Cell.CustomerName, ctx.Cell.Name)
+	ctx.Log.Debugf("running deployApplication")
 
-	if err := terraform.Deploy(ctx); err != nil {
+	if err := ansible.Deploy(ctx); err != nil {
 		ctx.Log.Error("deployApplication failed, ", err)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
