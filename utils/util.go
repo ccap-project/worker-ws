@@ -46,7 +46,7 @@ func Template(tmpl string, data interface{}) (*bytes.Buffer, error) {
 func RunCmd(pwd string, env []string, arg ...string) (*exec.Cmd, *bufio.Scanner, *bytes.Buffer) {
 
 	var stderr bytes.Buffer
-	log.Println(arg)
+	//log.Println(arg)
 
 	cmd := exec.Command(arg[0], arg[1:]...)
 
