@@ -32,10 +32,8 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 
 		ctx.Cell, err = config.DecodeJson(io.LimitReader(r.Body, SystemConfig.WebService.BodyLimit))
 
-		ctx.Log.Debugf("Cell(%v)", ctx.Cell)
-
 		if err != nil {
-			ctx.Log.Error("checkInfrastructure failed, ", err)
+			ctx.Log.Error("makeHandler failed, ", err)
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(422) // unprocessable entity
 			if err = json.NewEncoder(w).Encode(err); err != nil {
@@ -50,7 +48,7 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 		err = repo.Build(ctx)
 
 		if err != nil {
-			ctx.Log.Error("checkInfrastructure failed, ", err)
+			ctx.Log.Error("makeHandler failed, ", err)
 			panic(err)
 		}
 
