@@ -23,11 +23,17 @@ type CustomerEnv struct {
  */
 type Provider struct {
 	Name       string `json:"name"`
+	DomainName string `json:"domain_name"`
 	Region     string `json:"region"`
 	Tenantname string `json:"tenantname"`
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 	AuthUrl    string `json:"auth_url"`
+}
+
+type KeyPair struct {
+	Name      string `json:"name"`
+	PublicKey string `json:"public_key"`
 }
 
 type Host struct {
@@ -45,6 +51,7 @@ type Hostgroup struct {
 	Name    string              `json:"name"`
 	Flavor  string              `json:"flavor"`
 	Image   string              `json:"image"`
+	KeyPair string              `json:"key_pair"`
 	Count   string              `json:"count"`
 	Network string              `json:"network"`
 	Vars    []map[string]string `json:"vars"`
@@ -80,6 +87,7 @@ type Cell struct {
 	Name              string `json:"name"`
 	Environment       CustomerEnv
 	Provider          *Provider          `json:"provider"`
+	KeyPair           *KeyPair           `json:"keypair"`
 	Hosts             []*Host            `json:"hosts"`
 	Hostgroups        []*Hostgroup       `json:"hostgroups"`
 	Networks          []*Network         `json:"networks"`
