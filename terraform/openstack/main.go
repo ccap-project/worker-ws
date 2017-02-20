@@ -17,6 +17,7 @@ const provider_resource_tmpl = `provider "openstack" {
   tenant_name = "{{.Tenantname}}"
   password  = "{{.Password}}"
   auth_url  = "{{.AuthUrl}}"
+	{{if ne .DomainName "" }}domain_name = "{{.DomainName}}"{{end -}}
 }
 `
 
