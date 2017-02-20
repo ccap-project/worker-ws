@@ -3,8 +3,6 @@ package utils
 import (
 	"bufio"
 	"bytes"
-	"fmt"
-	"log"
 	"math/rand"
 	"os/exec"
 	"path/filepath"
@@ -43,30 +41,21 @@ func Template(tmpl string, data interface{}) (*bytes.Buffer, error) {
 /*
  * Run command, return stdout scanner and cmd handler
  */
-func RunCmd(pwd string, env []string, arg ...string) (*exec.Cmd, *bufio.Scanner, *bytes.Buffer) {
-
-	var stderr bytes.Buffer
-	//log.Println(arg)
+func RunCmd(pwd string, env []string, arg ...string) (*[]byte, error) {
 
 	cmd := exec.Command(arg[0], arg[1:]...)
 
-	cmd.Dir = filepath.Dir(pwd)
-	cmd.Env = env
-
-	cmd.Stderr = &stderr
-	stdout, err_stdout := cmd.StdoutPipe()
-
-	if err_stdout != nil {
-		log.Fatalf("Error running(%v), %s", arg, fmt.Errorf("%v", err_stdout))
+	if len(pwd) > 0 {
+		cmd.Dir = filepath.Dir(pwd)
 	}
 
-	if err_start := cmd.Start(); err_start != nil {
-		log.Fatalf("Error running(%v), %s", arg, fmt.Errorf("%v", err_start))
+	if len(env) > 0 {
+		cmd.Env = env
 	}
 
-	stdout_scanner := bufio.NewScanner(stdout)
+	out, err := cmd.CombinedOutput()
 
-	return cmd, stdout_scanner, &stderr
+	return &out, err
 }
 
 func GetULID() (ulid.ULID, error) {

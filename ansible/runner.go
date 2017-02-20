@@ -1,7 +1,7 @@
 package ansible
 
 import (
-	"errors"
+	"fmt"
 
 	"../config"
 	"../utils"
@@ -9,10 +9,10 @@ import (
 
 func RolesInstall(system *config.SystemConfig, cell *config.Cell) error {
 
-	cmd, _, stderr := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.AnsibleGalaxy, "install", "-r", system.Files.AnsibleRequirements)
+	out, err := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.AnsibleGalaxy, "install", "-r", system.Files.AnsibleRequirements)
 
-	if err_wait := cmd.Wait(); err_wait != nil {
-		return errors.New(stderr.String())
+	if err != nil {
+		return fmt.Errorf("%v, %s", err, out)
 	}
 
 	return nil
@@ -20,10 +20,10 @@ func RolesInstall(system *config.SystemConfig, cell *config.Cell) error {
 
 func Run(system *config.SystemConfig, cell *config.Cell) error {
 
-	cmd, _, stderr := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, system.Files.AnsiblePlaybook)
+	out, err := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, system.Files.AnsiblePlaybook)
 
-	if err_wait := cmd.Wait(); err_wait != nil {
-		return errors.New(stderr.String())
+	if err != nil {
+		return fmt.Errorf("%v, %s", err, out)
 	}
 
 	return nil
@@ -31,10 +31,10 @@ func Run(system *config.SystemConfig, cell *config.Cell) error {
 
 func SyntaxCheck(system *config.SystemConfig, cell *config.Cell) error {
 
-	cmd, _, stderr := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, "--syntax-check", system.Files.AnsiblePlaybook)
+	out, err := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, "--syntax-check", system.Files.AnsiblePlaybook)
 
-	if err_wait := cmd.Wait(); err_wait != nil {
-		return errors.New(stderr.String())
+	if err != nil {
+		return fmt.Errorf("%v, %s", err, out)
 	}
 
 	return nil

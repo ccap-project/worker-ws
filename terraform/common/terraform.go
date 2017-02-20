@@ -1,7 +1,7 @@
 package terraformcommon
 
 import (
-	"errors"
+	"fmt"
 
 	"../../config/"
 	"../../utils/"
@@ -9,10 +9,10 @@ import (
 
 func Apply(SystemConfig *config.SystemConfig, dir string) error {
 
-	cmd, _, stderr := utils.RunCmd(dir, []string{}, SystemConfig.Commands.Terraform, "apply", dir)
+	out, err := utils.RunCmd(dir, []string{}, SystemConfig.Commands.Terraform, "apply", dir)
 
-	if err_wait := cmd.Wait(); err_wait != nil {
-		return errors.New(stderr.String())
+	if err != nil {
+		return fmt.Errorf("%v, %s", err, out)
 	}
 
 	return nil
@@ -20,10 +20,10 @@ func Apply(SystemConfig *config.SystemConfig, dir string) error {
 
 func Validate(SystemConfig *config.SystemConfig, dir string) error {
 
-	cmd, _, stderr := utils.RunCmd(dir, []string{}, SystemConfig.Commands.Terraform, "validate", dir)
+	out, err := utils.RunCmd(dir, []string{}, SystemConfig.Commands.Terraform, "validate", dir)
 
-	if err_wait := cmd.Wait(); err_wait != nil {
-		return errors.New(stderr.String())
+	if err != nil {
+		return fmt.Errorf("%v, %s", err, out)
 	}
 
 	return nil
