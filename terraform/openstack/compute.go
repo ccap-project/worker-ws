@@ -1,11 +1,19 @@
 package openstack
 
 import "bytes"
+
 //import "text/template"
 //import "os"
 
 import "../../config/"
 import "../../utils"
+
+const keypair_resource_tmpl = `
+resource "openstack_compute_keypair_v2" "{.KeyName}" {
+  name = "{.KeyName}"
+  public_key = "{.PublicKey}"
+}
+`
 
 const instance_resource_tmpl = `
 resource "openstack_compute_instance_v2" "{{.Name}}" {
@@ -19,21 +27,36 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
   network {
     "uuid" = "${openstack_networking_network_v2.{{.Network}}.id}"
   }
+  {{if ne .KeyPair "" }}key_pair = "{{.KeyPair}}"{{end -}}
 }
 `
 
-func instance (config *config.Cell) (*bytes.Buffer, error) {
+func instance(config *config.Cell) (*bytes.Buffer, error) {
 
-  var instances bytes.Buffer
+	var instances bytes.Buffer
 
-  for _, h := range config.Hostgroups {
-    i,err := utils.Template(instance_resource_tmpl, h)
-    if err != nil {
-      return nil, err
-    }
+	for _, h := range config.Hostgroups {
+		i, err := utils.Template(instance_resource_tmpl, h)
+		if err != nil {
+			return nil, err
+		}
 
-    instances.Write(i.Bytes())
-  }
+		instances.Write(i.Bytes())
+	}
 
-  return &instances, nil
+	return &instances, nil
+}
+
+func keypair(config *config.Cell) (*bytes.Buffer, error) {
+
+	var keypair bytes.Buffer
+
+	k, err := utils.Template(instance_resource_tmpl, config.KeyPair)
+	if err != nil {
+		return nil, err
+	}
+
+	keypair.Write(k.Bytes())
+
+	return &keypair, nil
 }
