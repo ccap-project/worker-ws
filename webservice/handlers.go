@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/mux"
 
 	"../ansible"
 	"../config"
@@ -50,6 +52,16 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 		if err != nil {
 			ctx.Log.Error("makeHandler failed, ", err)
 			panic(err)
+		}
+
+		if mustReadState(ctx) {
+
+			err = terraform.ReadState(ctx)
+
+			if err != nil {
+				ctx.Log.Error("makeHandler failed, ", err)
+				panic(err)
+			}
 		}
 
 		/*
@@ -130,6 +142,19 @@ func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.Reques
 
 func deployApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
 
+	vars := mux.Vars(r)
+
+	if vars == nil {
+		if err := ansible.Check(ctx); err != nil {
+			ctx.Log.Error("deployApplication failed, ", err)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(422) // unprocessable entity
+			if err := json.NewEncoder(w).Encode(err); err != nil {
+				panic(err)
+			}
+		}
+	}
+
 	ctx.Log.Debugf("running deployApplication")
 
 	if err := ansible.Deploy(ctx); err != nil {
@@ -145,4 +170,34 @@ func deployApplication(w http.ResponseWriter, r *http.Request, ctx *config.Reque
 	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
 		panic(err)
 	}
+}
+
+func mustReadState(ctx *config.RequestContext) bool {
+
+	var inventory, tf os.FileInfo
+	var err error
+
+	tfStateFile := terraform.GetStateFilename(ctx)
+	inventoryFile := ansible.GetInventoryFilename(ctx.SystemConfig, ctx.Cell)
+
+	tf, err = os.Lstat(tfStateFile)
+	if err != nil {
+		ctx.Log.Debugf("tfStateFile(%s) does not exists", tfStateFile)
+		return false
+	}
+
+	inventory, err = os.Lstat(inventoryFile)
+	if err != nil {
+		ctx.Log.Debugf("inventoryFile(%s) does not exists", inventoryFile)
+		return true
+	}
+	inventoryMtime := inventory.ModTime()
+	tfMtime := tf.ModTime()
+
+	if tfMtime.After(inventoryMtime) {
+		ctx.Log.Debugf("inventoryFile(%s) is oldter than tfStateFile(%s)", inventoryFile, tfStateFile)
+		return true
+	}
+
+	return false
 }
