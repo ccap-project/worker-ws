@@ -25,9 +25,9 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
   #floating_ip = "${openstack_compute_floatingip_v2.tf-ds-float-ip.address}"
   #security_groups = ["default"]
   network {
-    "uuid" = "${openstack_networking_network_v2.{{.Network}}.id}"
+    {{if ne .NetworkUUIDByName ""}}uuid = "${openstack_networking_network_v2.{{.Network}}.id}"{{else}}name = "{{.Network}}"{{end}}
   }
-  {{if ne .KeyPair "" }}key_pair = "{{.KeyPair}}"{{end -}}
+  {{if ne .KeyPair "" }}key_pair = "{{.KeyPair}}"{{end}}
 }
 `
 
