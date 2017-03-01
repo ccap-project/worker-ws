@@ -80,3 +80,23 @@ func Deploy(ctx *config.RequestContext) error {
 
 	return nil
 }
+
+func ReadState(ctx *config.RequestContext) error {
+
+	Env := Init(ctx.Cell.Provider.Name)
+	if Env == nil {
+		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Name)
+	}
+
+	ctx.Log.Debug("Reading state")
+
+	if err := Env.ReadState(ctx.Cell, GetStateFilename(ctx)); err != nil {
+		return fmt.Errorf("reading terraform state, %v", err)
+	}
+
+	return nil
+}
+
+func GetStateFilename(ctx *config.RequestContext) string {
+	return fmt.Sprintf("%s%s", ctx.Cell.Environment.Terraform.Dir, ctx.SystemConfig.Files.TerraformState)
+}
