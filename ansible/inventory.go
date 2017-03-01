@@ -48,7 +48,7 @@ func group_vars(config *config.Cell) *bytes.Buffer {
 		fmt.Fprintf(&group_vars, "[%s:vars]\n", hostgroup.Name)
 
 		if len(hostgroup.Username) > 0 {
-			fmt.Fprintf(&group_vars, "ANSIBLE_REMOTE_USER=%s\n", hostgroup.Username)
+			fmt.Fprintf(&group_vars, "ansible_user=%s\n", hostgroup.Username)
 		}
 
 		for _, vars := range hostgroup.Vars {
@@ -60,4 +60,8 @@ func group_vars(config *config.Cell) *bytes.Buffer {
 	}
 
 	return (&group_vars)
+}
+
+func GetInventoryFilename(config *config.SystemConfig, cell *config.Cell) string {
+	return fmt.Sprintf("%s%s", cell.Environment.Ansible.Dir, config.Files.AnsibleHosts)
 }
