@@ -94,6 +94,12 @@ func checkInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.Req
 		}
 	}
 
+	err := repo.Persist(ctx.Cell.Environment.Terraform)
+	if err != nil {
+		fmt.Errorf("Here, %v", err)
+		ctx.Log.Errorf("Persist Terraform repo, %v", err)
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
 		panic(err)
@@ -132,6 +138,11 @@ func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.Reques
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			panic(err)
 		}
+	}
+
+	ctx.Log.Infof("Commit Repo(%s)", ctx.Cell.Environment.Ansible.Name)
+	if err := repo.Persist(ctx.Cell.Environment.Ansible); err != nil {
+		ctx.Log.Errorf("Commit error, %v", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
