@@ -28,9 +28,21 @@ func Build(ctx *config.RequestContext) error {
 	return nil
 }
 
+func Persist(repoEnv *config.RepoEnv) error {
+
+	err := git.CommitAndPush(repoEnv.Dir, repoEnv.Dir)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, error) {
 
 	var Project *gitlab.Project
+	//projectCreated := false
 
 	ctx.Log.Debugf("RepoType(%s)", RepoType)
 
@@ -45,8 +57,6 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_INVENTORY=%s/%s", RepoEnv.Dir, ctx.SystemConfig.Files.AnsibleHosts))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_ROLES_PATH=%s/roles", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_LOG_PATH=%s/log", RepoEnv.Dir))
-		//RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_LOCAL_TMP=%s/tmp", RepoEnv.Dir))
-		//RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_SSH_CONTROL_PATH=%s/tmp/cp", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("HOME=%s", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, "ANSIBLE_GALAXY_IGNORE=true")
 		RepoEnv.Env = append(RepoEnv.Env, "GIT_SSL_NO_VERIFY=true")
@@ -96,18 +106,19 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		if err != nil {
 			return nil, fmt.Errorf("creating gitlab project %s, %v", projectPath, err)
 		}
+		//projectCreated = true
 		ctx.Log.Infof("Created project(%s)", projectPath)
 	}
 
 	d, err := os.Stat(RepoEnv.Dir)
 
 	if err == nil && d.IsDir() {
-		ctx.Log.Infof("Pulling %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
+		ctx.Log.Infof("Checkout %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
 
-		git.Pull(RepoEnv.Dir, Project.HTTPURLToRepo)
+		git.Checkout(RepoEnv.Dir, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify)
 
 		if err != nil {
-			return nil, fmt.Errorf("pulling gitlab project %s, %v", projectPath, err)
+			return nil, fmt.Errorf("Checkout gitlab project %s, %v", projectPath, err)
 		}
 	} else {
 		os.Remove(RepoEnv.Dir)
@@ -118,10 +129,14 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 
 		ctx.Log.Infof("Cloning %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
 
-		err = git.Clone(RepoEnv.Dir, Project.HTTPURLToRepo, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify)
+		err = git.Clone(RepoEnv.Dir, Project.SSHURLToRepo, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify)
 		if err != nil {
 			return nil, fmt.Errorf("cloning gitlab project %s, %v", projectPath, err)
 		}
+
+		//if projectCreated {
+		//	git.CreateBranch(RepoEnv.Dir, "main")
+		//}
 
 		os.MkdirAll(RepoEnv.Dir+"/roles", 0750)
 	}
