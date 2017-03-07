@@ -94,7 +94,7 @@ func checkInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.Req
 		}
 	}
 
-	err := repo.Persist(ctx.Cell.Environment.Terraform)
+	err := repo.Persist(ctx, ctx.Cell.Environment.Terraform)
 	if err != nil {
 		fmt.Errorf("Here, %v", err)
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
@@ -141,7 +141,7 @@ func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.Reques
 	}
 
 	ctx.Log.Infof("Commit Repo(%s)", ctx.Cell.Environment.Ansible.Name)
-	if err := repo.Persist(ctx.Cell.Environment.Ansible); err != nil {
+	if err := repo.Persist(ctx, ctx.Cell.Environment.Ansible); err != nil {
 		ctx.Log.Errorf("Commit error, %v", err)
 	}
 

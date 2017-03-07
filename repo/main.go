@@ -28,10 +28,21 @@ func Build(ctx *config.RequestContext) error {
 	return nil
 }
 
-func Persist(repoEnv *config.RepoEnv) error {
+func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv) error {
 
-	err := git.CommitAndPush(repoEnv.Dir, repoEnv.Dir)
+	commit, err := git.Commit(repoEnv.Dir, repoEnv.Dir)
+	if err != nil {
+		return err
+	}
 
+	//ctx.Log = ctx.SystemConfig.Log.WithFields(log.Fields{"commit_id": commit.String()})
+
+	err = git.Tag(repoEnv.Dir, commit, fmt.Sprint(ctx.RunID))
+	if err != nil {
+		return err
+	}
+
+	err = git.Push(repoEnv.Dir, fmt.Sprint(ctx.RunID))
 	if err != nil {
 		return err
 	}

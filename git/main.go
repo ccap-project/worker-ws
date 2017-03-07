@@ -17,33 +17,6 @@ func credentialsCallback(url string, username string, allowedTypes git2go.CredTy
 	return git2go.ErrorCode(ret), &cred
 }
 
-func CreateBranch(repoPath string, branchName string) error {
-
-	repo, err := git2go.OpenRepository(repoPath)
-
-	if err != nil {
-		return err
-	}
-
-	localBranch, err := repo.LookupBranch(branchName, git2go.BranchLocal)
-	// No local branch, lets create one
-	if localBranch == nil || err != nil {
-		// Creating local branch
-		localBranch, err = repo.CreateBranch(branchName, nil, false)
-		if err != nil {
-			return fmt.Errorf("Failed to create local branch: %s", branchName)
-		}
-
-		// Setting upstream to origin branch
-		err = localBranch.SetUpstream("origin/" + branchName)
-		if err != nil {
-			return fmt.Errorf("Failed to create upstream to origin/%s", branchName)
-		}
-	}
-
-	return nil
-}
-
 func Clone(dir string, url string, chkcert bool) error {
 
 	cloneOptions := &git2go.CloneOptions{}
@@ -138,7 +111,7 @@ func Checkout(dir string, chkcert bool) error {
 	return nil
 }
 
-func CommitAndPush(dir string, message string) error {
+func Commit(dir string, message string) (commit *git2go.Oid, err error) {
 
 	branchName := "master"
 
@@ -147,6 +120,66 @@ func CommitAndPush(dir string, message string) error {
 		Email: "c@m.c",
 		When:  time.Now(),
 	}
+
+	repo, err := git2go.OpenRepository(dir)
+
+	if err != nil {
+		return nil, err
+	}
+
+	idx, err := repo.Index()
+	if err != nil {
+		return nil, err
+	}
+
+	err = idx.AddAll([]string{}, git2go.IndexAddDefault, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	treeId, err := idx.WriteTree()
+	if err != nil {
+		return nil, err
+	}
+
+	err = idx.Write()
+	if err != nil {
+		return nil, err
+	}
+
+	tree, err := repo.LookupTree(treeId)
+	if err != nil {
+		return nil, err
+	}
+
+	localBranch, err := repo.LookupBranch(branchName, git2go.BranchLocal)
+	// No local branch, lets create one
+	if localBranch == nil || err != nil {
+
+		commit, err = repo.CreateCommit("HEAD", signature, signature, message, tree)
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+
+		commitTarget, err := repo.LookupCommit(localBranch.Target())
+		if err != nil {
+			return nil, err
+		}
+
+		commit, err = repo.CreateCommit("HEAD", signature, signature, message, tree, commitTarget)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return commit, nil
+}
+
+func Push(dir string, ref string) error {
+
+	branchName := "master"
 
 	pushOptions := &git2go.PushOptions{
 		RemoteCallbacks: git2go.RemoteCallbacks{
@@ -161,72 +194,6 @@ func CommitAndPush(dir string, message string) error {
 		return err
 	}
 
-	idx, err := repo.Index()
-	if err != nil {
-		return err
-	}
-
-	err = idx.AddAll([]string{}, git2go.IndexAddDefault, nil)
-	if err != nil {
-		return err
-	}
-
-	treeId, err := idx.WriteTree()
-	if err != nil {
-		return err
-	}
-
-	err = idx.Write()
-	if err != nil {
-		return err
-	}
-
-	tree, err := repo.LookupTree(treeId)
-	if err != nil {
-		return err
-	}
-
-	localBranch, err := repo.LookupBranch(branchName, git2go.BranchLocal)
-	// No local branch, lets create one
-	if localBranch == nil || err != nil {
-
-		_, err := repo.CreateCommit("HEAD", signature, signature, message, tree)
-		if err != nil {
-			return err
-		}
-
-		//commitTarget, err := repo.LookupCommit(commit)
-		//if err != nil {
-		//	return err
-		//}
-
-		// Creating local branch
-		//localBranch, err = repo.CreateBranch(branchName, commitTarget, false)
-		//if err != nil {
-		//	return fmt.Errorf("Failed to create local branch: %s, %v", branchName, err)
-		//}
-
-		// Setting upstream to origin branch
-		//err = localBranch.SetUpstream("origin/" + branchName)
-		//if err != nil {
-		//	return fmt.Errorf("Failed to create upstream to origin/%s", branchName)
-		//}
-
-	} else {
-
-		commitTarget, err := repo.LookupCommit(localBranch.Target())
-		if err != nil {
-			return err
-		}
-
-		_, err = repo.CreateCommit("HEAD", signature, signature, message, tree, commitTarget)
-		if err != nil {
-			return err
-		}
-	}
-
-	fmt.Print("Here Before Remote\n")
-
 	remote, err := repo.Remotes.Lookup("origin")
 	if err != nil {
 		remote, err = repo.Remotes.Create("origin", repo.Path())
@@ -235,11 +202,31 @@ func CommitAndPush(dir string, message string) error {
 		}
 	}
 
-	fmt.Printf("Here (%s)\n", branchName)
-	err = remote.Push([]string{"refs/heads/" + branchName}, pushOptions)
+	err = remote.Push([]string{"refs/heads/" + branchName, "refs/tags/" + ref}, pushOptions)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func Tag(dir string, commit *git2go.Oid, message string) error {
+
+	repo, err := git2go.OpenRepository(dir)
+
+	if err != nil {
+		return err
+	}
+
+	commitTarget, err := repo.LookupCommit(commit)
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.Tags.CreateLightweight(message, commitTarget, false)
+
+	if err != nil {
+		return err
+	}
 	return nil
 }
