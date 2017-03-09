@@ -1,12 +1,10 @@
 package config
 
-import (
-	log "github.com/Sirupsen/logrus"
-	"github.com/oklog/ulid"
-)
+import log "github.com/Sirupsen/logrus"
 
 type RequestContext struct {
-	RunID ulid.ULID
+	RunID string
+	TagID string
 	Log   *log.Entry
 	*SystemConfig
 	*Cell
