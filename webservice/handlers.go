@@ -18,6 +18,7 @@ import (
 )
 
 type status struct {
+	Type       string `json:"stage_type"`
 	StatusCode int    `json:"status_code"`
 	Message    string `json:"msg"`
 }
@@ -32,13 +33,14 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		var err error
-
 		ctx := new(config.RequestContext)
 
 		ctx.SystemConfig = SystemConfig
 
-		ctx.RunID, err = utils.GetULID()
+		// XXX: check id gen failure
+		run_id, err := utils.GetULID()
+
+		ctx.RunID = run_id.String()
 
 		ctx.Log = SystemConfig.Log.WithFields(log.Fields{"rid": ctx.RunID})
 		// XXX: Log RemoteIP
@@ -88,7 +90,7 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 		var res run_status
 		var status []status
 
-		res.RunID = ctx.RunID.String()
+		res.RunID = ctx.RunID
 
 		status = fn(r, ctx)
 
@@ -99,7 +101,9 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 		res.Stages = status
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		if err := json.NewEncoder(w).Encode(res); err != nil {
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
 			panic(err)
 		}
 	}
@@ -117,6 +121,7 @@ func checkInfrastructure(r *http.Request, ctx *config.RequestContext) []status {
 
 	res := make([]status, 1, 1)
 
+	res[0].Type = "infra"
 	res[0].StatusCode = 0
 
 	ctx.Log.Debugf("running checkInfrastructure")
@@ -144,12 +149,22 @@ func deployInfrastructure(r *http.Request, ctx *config.RequestContext) []status 
 
 	res := make([]status, 1, 1)
 
+	res[0].Type = "infra"
 	res[0].StatusCode = 0
 
 	ctx.Log.Debugf("running deployInfrastructure")
-
-	if err := terraform.Deploy(ctx); err != nil {
+	err := terraform.Deploy(ctx)
+	if err != nil {
 		ctx.Log.Errorf("deployInfrastructure failed, %v", err)
+
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
+	}
+
+	err = repo.Persist(ctx, ctx.Cell.Environment.Terraform)
+	if err != nil {
+		ctx.Log.Errorf("Persist Terraform repo, %v", err)
 
 		res[0].StatusCode = 1
 		res[0].Message = fmt.Sprint(err)
