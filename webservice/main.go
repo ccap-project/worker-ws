@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -30,8 +29,8 @@ func Start(SystemConfig *config.SystemConfig) {
 		Handler: handlers.CombinedLoggingHandler(os.Stdout, main_router),
 		Addr:    fmt.Sprintf("%s:%d", SystemConfig.WebService.Address, SystemConfig.WebService.Port),
 		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		//WriteTimeout: 15 * time.Second,
+		//ReadTimeout:  15 * time.Second,
 	}
 
 	SystemConfig.Log.Debugf("Starting socket on %s:%d", SystemConfig.WebService.Address, SystemConfig.WebService.Port)
