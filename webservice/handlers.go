@@ -17,19 +17,23 @@ import (
 	"../utils"
 )
 
+type stages struct {
+	Infra status `json:"infrastructure"`
+	App   status `json:"application"`
+}
+
 type status struct {
-	Type       string `json:"stage_type"`
 	StatusCode int    `json:"status_code"`
 	Message    string `json:"msg"`
 }
 
 type run_status struct {
-	RunID      string   `json:"run_id"`
-	StatusCode int      `json:"status_code"`
-	Stages     []status `json:"stages"`
+	RunID      string `json:"run_id"`
+	StatusCode int    `json:"status_code"`
+	Stage      stages `json:"stage"`
 }
 
-func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *config.RequestContext) []status) http.HandlerFunc {
+func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *config.RequestContext, *stages)) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -87,135 +91,113 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 		/*
 		 * Format output
 		 */
-		var res run_status
-		var status []status
+		var status run_status
 
-		res.RunID = ctx.RunID
+		status.RunID = ctx.RunID
 
-		status = fn(r, ctx)
+		fn(r, ctx, &status.Stage)
 
-		for _, s := range status {
-			res.StatusCode |= s.StatusCode
-		}
-
-		res.Stages = status
+		status.StatusCode = status.Stage.Infra.StatusCode | status.Stage.App.StatusCode
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		err = json.NewEncoder(w).Encode(res)
+		err = json.NewEncoder(w).Encode(status)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func deploy(r *http.Request, ctx *config.RequestContext) []status {
+func deploy(r *http.Request, ctx *config.RequestContext, stages *stages) {
 
-	resInfra := deployInfrastructure(r, ctx)
-	resApp := deployApplication(r, ctx)
-
-	return append(resInfra, resApp[0])
+	deployInfrastructure(r, ctx, stages)
+	deployApplication(r, ctx, stages)
 }
 
-func checkInfrastructure(r *http.Request, ctx *config.RequestContext) []status {
+func checkInfrastructure(r *http.Request, ctx *config.RequestContext, stages *stages) {
 
-	res := make([]status, 1, 1)
-
-	res[0].Type = "infra"
-	res[0].StatusCode = 0
+	stages.Infra.StatusCode = 0
 
 	ctx.Log.Debugf("running checkInfrastructure")
 
 	if err := terraform.Check(ctx); err != nil {
 		ctx.Log.Error("checkInfrastructure failed, ", err)
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.Infra.StatusCode = 1
+		stages.Infra.Message = fmt.Sprint(err)
+		return
 	}
 
 	err := repo.Persist(ctx, ctx.Cell.Environment.Terraform)
 	if err != nil {
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
 
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.Infra.StatusCode = 1
+		stages.Infra.Message = fmt.Sprint(err)
+		return
 	}
-
-	return res
 }
 
-func deployInfrastructure(r *http.Request, ctx *config.RequestContext) []status {
+func deployInfrastructure(r *http.Request, ctx *config.RequestContext, stages *stages) {
 
-	res := make([]status, 1, 1)
-
-	res[0].Type = "infra"
-	res[0].StatusCode = 0
+	stages.Infra.StatusCode = 0
 
 	ctx.Log.Debugf("running deployInfrastructure")
 	err := terraform.Deploy(ctx)
 	if err != nil {
 		ctx.Log.Errorf("deployInfrastructure failed, %v", err)
 
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.Infra.StatusCode = 1
+		stages.Infra.Message = fmt.Sprint(err)
+		return
 	}
 
 	err = repo.Persist(ctx, ctx.Cell.Environment.Terraform)
 	if err != nil {
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
 
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.Infra.StatusCode = 1
+		stages.Infra.Message = fmt.Sprint(err)
+		return
 	}
-
-	return res
 }
 
-func checkApplication(r *http.Request, ctx *config.RequestContext) []status {
+func checkApplication(r *http.Request, ctx *config.RequestContext, stages *stages) {
 
-	res := make([]status, 1, 1)
-
-	res[0].StatusCode = 0
+	stages.App.StatusCode = 0
 
 	ctx.Log.Debugf("running checkApplication")
 
 	if err := ansible.Check(ctx); err != nil {
 		ctx.Log.Error("checkApplication failed, ", err)
 
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.App.StatusCode = 1
+		stages.App.Message = fmt.Sprint(err)
+		return
 	}
 
 	ctx.Log.Infof("Commit Repo(%s)", ctx.Cell.Environment.Ansible.Name)
 	if err := repo.Persist(ctx, ctx.Cell.Environment.Ansible); err != nil {
 		ctx.Log.Errorf("Commit error, %v", err)
 
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.App.StatusCode = 1
+		stages.App.Message = fmt.Sprint(err)
+		return
 	}
-
-	return res
 }
 
-func deployApplication(r *http.Request, ctx *config.RequestContext) []status {
+func deployApplication(r *http.Request, ctx *config.RequestContext, stages *stages) {
 
 	vars := mux.Vars(r)
 
-	res := make([]status, 1, 1)
-	res[0].StatusCode = 0
+	stages.App.StatusCode = 0
 
 	if vars == nil {
 		if err := ansible.Check(ctx); err != nil {
 			ctx.Log.Error("deployApplication failed, ", err)
 
-			res[0].StatusCode = 1
-			res[0].Message = fmt.Sprint(err)
-			return res
+			stages.App.StatusCode = 1
+			stages.App.Message = fmt.Sprint(err)
+			return
 		}
 	}
 
@@ -224,12 +206,10 @@ func deployApplication(r *http.Request, ctx *config.RequestContext) []status {
 	if err := ansible.Deploy(ctx); err != nil {
 		ctx.Log.Error("deployApplication failed, ", err)
 
-		res[0].StatusCode = 1
-		res[0].Message = fmt.Sprint(err)
-		return res
+		stages.App.StatusCode = 1
+		stages.App.Message = fmt.Sprint(err)
+		return
 	}
-
-	return res
 }
 
 func mustReadState(ctx *config.RequestContext) bool {
