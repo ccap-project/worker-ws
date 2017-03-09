@@ -21,12 +21,12 @@ const provider_resource_tmpl = `provider "openstack" {
 }
 `
 
-func (o *Openstack) Apply(system *config.SystemConfig, dir string) error {
-	return terraformcommon.Apply(system, dir)
+func (o *Openstack) Apply(system *config.SystemConfig, cell *config.Cell) (*[]byte, error) {
+	return terraformcommon.Apply(system, cell)
 }
 
-func (o *Openstack) Validate(system *config.SystemConfig, dir string) error {
-	return terraformcommon.Validate(system, dir)
+func (o *Openstack) Validate(system *config.SystemConfig, cell *config.Cell) error {
+	return terraformcommon.Validate(system, cell)
 }
 
 func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) error {

@@ -7,20 +7,20 @@ import (
 	"../../utils/"
 )
 
-func Apply(SystemConfig *config.SystemConfig, dir string) error {
+func Apply(SystemConfig *config.SystemConfig, cell *config.Cell) (*[]byte, error) {
 
-	out, err := utils.RunCmd(dir, []string{}, SystemConfig.Commands.Terraform, "apply", dir)
+	out, err := utils.RunCmd(cell.Environment.Terraform.Dir, cell.Environment.Terraform.Env, SystemConfig.Commands.Terraform, "apply", cell.Environment.Terraform.Dir)
 
 	if err != nil {
-		return fmt.Errorf("%v, %s", err, out)
+		return nil, fmt.Errorf("%v, %s", err, out)
 	}
 
-	return nil
+	return out, nil
 }
 
-func Validate(SystemConfig *config.SystemConfig, dir string) error {
+func Validate(SystemConfig *config.SystemConfig, cell *config.Cell) error {
 
-	out, err := utils.RunCmd(dir, []string{}, SystemConfig.Commands.Terraform, "validate", dir)
+	out, err := utils.RunCmd(cell.Environment.Terraform.Dir, cell.Environment.Terraform.Env, SystemConfig.Commands.Terraform, "validate", cell.Environment.Terraform.Dir)
 
 	if err != nil {
 		return fmt.Errorf("%v, %s", err, out)

@@ -8,10 +8,10 @@ import (
 )
 
 type Terraform interface {
-	Apply(*config.SystemConfig, string) error
+	Apply(*config.SystemConfig, *config.Cell) (*[]byte, error)
 	ReadState(*config.Cell, string) error
 	Serialize(*config.SystemConfig, *config.Cell) error
-	Validate(*config.SystemConfig, string) error
+	Validate(*config.SystemConfig, *config.Cell) error
 }
 
 func Init(provider string) Terraform {
@@ -37,7 +37,7 @@ func Check(ctx *config.RequestContext) error {
 	}
 
 	ctx.Log.Debug("Validating")
-	if err := Env.Validate(ctx.SystemConfig, ctx.Cell.Environment.Terraform.Dir); err != nil {
+	if err := Env.Validate(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
 	}
 
@@ -58,12 +58,14 @@ func Deploy(ctx *config.RequestContext) error {
 	}
 
 	ctx.Log.Debug("Validating")
-	if err := Env.Validate(ctx.SystemConfig, ctx.Cell.Environment.Terraform.Dir); err != nil {
+	if err := Env.Validate(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
 	}
 
 	ctx.Log.Debug("Applying")
-	if err := Env.Apply(ctx.SystemConfig, ctx.Cell.Environment.Terraform.Dir); err != nil {
+	_, err := Env.Apply(ctx.SystemConfig, ctx.Cell)
+
+	if err != nil {
 		return fmt.Errorf("Failure applying Terraform, %v", err)
 	}
 
