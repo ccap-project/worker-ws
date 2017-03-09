@@ -37,12 +37,12 @@ func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv) error {
 
 	//ctx.Log = ctx.SystemConfig.Log.WithFields(log.Fields{"commit_id": commit.String()})
 
-	err = git.Tag(repoEnv.Dir, commit, fmt.Sprint(ctx.RunID))
+	err = git.Tag(repoEnv.Dir, commit, ctx.RunID)
 	if err != nil {
 		return err
 	}
 
-	err = git.Push(repoEnv.Dir, fmt.Sprint(ctx.RunID))
+	err = git.Push(repoEnv.Dir, ctx.RunID)
 	if err != nil {
 		return err
 	}
