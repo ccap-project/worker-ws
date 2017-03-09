@@ -17,7 +17,18 @@ import (
 	"../utils"
 )
 
-func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter, *http.Request, *config.RequestContext)) http.HandlerFunc {
+type status struct {
+	StatusCode int    `json:"status_code"`
+	Message    string `json:"msg"`
+}
+
+type run_status struct {
+	RunID      string   `json:"run_id"`
+	StatusCode int      `json:"status_code"`
+	Stages     []status `json:"stages"`
+}
+
+func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *config.RequestContext) []status) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -71,98 +82,127 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(http.ResponseWriter,
 			}
 		*/
 
-		fn(w, r, ctx)
+		/*
+		 * Format output
+		 */
+		var res run_status
+		var status []status
+
+		res.RunID = fmt.Sprint(ctx.RunID)
+
+		status = fn(r, ctx)
+
+		for _, s := range status {
+			res.StatusCode |= s.StatusCode
+		}
+
+		res.Stages = status
+
+		fmt.Print(res)
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			panic(err)
+		}
 	}
 }
 
-func deploy(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
+func deploy(r *http.Request, ctx *config.RequestContext) []status {
 
-	deployInfrastructure(w, r, ctx)
-	deployApplication(w, r, ctx)
+	resInfra := deployInfrastructure(r, ctx)
+	resApp := deployApplication(r, ctx)
+
+	return append(resInfra, resApp[0])
 }
 
-func checkInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
+func checkInfrastructure(r *http.Request, ctx *config.RequestContext) []status {
+
+	res := make([]status, 1, 1)
+
+	res[0].StatusCode = 0
 
 	ctx.Log.Debugf("running checkInfrastructure")
 
 	if err := terraform.Check(ctx); err != nil {
 		ctx.Log.Error("checkInfrastructure failed, ", err)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
 	}
 
 	err := repo.Persist(ctx, ctx.Cell.Environment.Terraform)
 	if err != nil {
-		fmt.Errorf("Here, %v", err)
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
+
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
-		panic(err)
-	}
+	return res
 }
 
-func deployInfrastructure(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
+func deployInfrastructure(r *http.Request, ctx *config.RequestContext) []status {
+
+	res := make([]status, 1, 1)
+
+	res[0].StatusCode = 0
 
 	ctx.Log.Debugf("running deployInfrastructure")
 
 	if err := terraform.Deploy(ctx); err != nil {
 		ctx.Log.Errorf("deployInfrastructure failed, %v", err)
 
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			ctx.Log.Errorf("deployInfrastructure failed, %v", err)
-			panic(err)
-		}
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
-		panic(err)
-	}
+	return res
 }
 
-func checkApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
+func checkApplication(r *http.Request, ctx *config.RequestContext) []status {
+
+	res := make([]status, 1, 1)
+
+	res[0].StatusCode = 0
 
 	ctx.Log.Debugf("running checkApplication")
 
 	if err := ansible.Check(ctx); err != nil {
 		ctx.Log.Error("checkApplication failed, ", err)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
+
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
 	}
 
 	ctx.Log.Infof("Commit Repo(%s)", ctx.Cell.Environment.Ansible.Name)
 	if err := repo.Persist(ctx, ctx.Cell.Environment.Ansible); err != nil {
 		ctx.Log.Errorf("Commit error, %v", err)
+
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
-		panic(err)
-	}
+	return res
 }
 
-func deployApplication(w http.ResponseWriter, r *http.Request, ctx *config.RequestContext) {
+func deployApplication(r *http.Request, ctx *config.RequestContext) []status {
 
 	vars := mux.Vars(r)
+
+	res := make([]status, 1, 1)
+	res[0].StatusCode = 0
 
 	if vars == nil {
 		if err := ansible.Check(ctx); err != nil {
 			ctx.Log.Error("deployApplication failed, ", err)
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(422) // unprocessable entity
-			if err := json.NewEncoder(w).Encode(err); err != nil {
-				panic(err)
-			}
+
+			res[0].StatusCode = 1
+			res[0].Message = fmt.Sprint(err)
+			return res
 		}
 	}
 
@@ -170,17 +210,13 @@ func deployApplication(w http.ResponseWriter, r *http.Request, ctx *config.Reque
 
 	if err := ansible.Deploy(ctx); err != nil {
 		ctx.Log.Error("deployApplication failed, ", err)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
+
+		res[0].StatusCode = 1
+		res[0].Message = fmt.Sprint(err)
+		return res
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if err := json.NewEncoder(w).Encode(fmt.Sprintf("Ok")); err != nil {
-		panic(err)
-	}
+	return res
 }
 
 func mustReadState(ctx *config.RequestContext) bool {
