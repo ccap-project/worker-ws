@@ -72,6 +72,10 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		RepoEnv.Env = append(RepoEnv.Env, "ANSIBLE_GALAXY_IGNORE=true")
 		RepoEnv.Env = append(RepoEnv.Env, "GIT_SSL_NO_VERIFY=true")
 		RepoEnv.Env = append(RepoEnv.Env, "HOST_KEY_CHECKING=true")
+
+	case "terraform":
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("TF_LOG=%s", "INFO"))
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("TF_LOG_PATH=%s/log", RepoEnv.Dir))
 	}
 
 	ctx.Log.Debugf(fmt.Sprintf("Env(%s)", RepoEnv.Env))
