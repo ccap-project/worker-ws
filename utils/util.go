@@ -12,8 +12,6 @@ import (
 	"github.com/oklog/ulid"
 )
 
-//import "io/ioutil"
-
 func Template(tmpl string, data interface{}) (*bytes.Buffer, error) {
 
 	var err error
@@ -59,7 +57,7 @@ func RunCmd(pwd string, env []string, arg ...string) (*[]byte, error) {
 }
 
 func GetULID() (ulid.ULID, error) {
-	t := time.Unix(1000000, 0)
+	t := time.Now()
 	entropy := rand.New(rand.NewSource(t.UnixNano()))
 
 	return ulid.New(ulid.Timestamp(t), entropy)
