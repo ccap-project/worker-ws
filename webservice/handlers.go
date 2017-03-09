@@ -88,7 +88,7 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 		var res run_status
 		var status []status
 
-		res.RunID = fmt.Sprint(ctx.RunID)
+		res.RunID = ctx.RunID.String()
 
 		status = fn(r, ctx)
 
@@ -97,8 +97,6 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 		}
 
 		res.Stages = status
-
-		fmt.Print(res)
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		if err := json.NewEncoder(w).Encode(res); err != nil {
