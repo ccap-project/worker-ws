@@ -46,6 +46,12 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 
 		ctx.RunID = run_id.String()
 
+		vars := mux.Vars(r)
+
+		if len(vars) > 0 {
+			ctx.TagID = vars["id"]
+		}
+
 		ctx.Log = SystemConfig.Log.WithFields(log.Fields{"rid": ctx.RunID})
 		// XXX: Log RemoteIP
 
@@ -127,7 +133,7 @@ func checkInfrastructure(r *http.Request, ctx *config.RequestContext, stages *st
 		return
 	}
 
-	err := repo.Persist(ctx, ctx.Cell.Environment.Terraform)
+	err := repo.Persist(ctx, ctx.Cell.Environment.Terraform, mustTag(ctx))
 	if err != nil {
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
 
@@ -151,7 +157,6 @@ func deployInfrastructure(r *http.Request, ctx *config.RequestContext, stages *s
 		return
 	}
 
-	err = repo.Persist(ctx, ctx.Cell.Environment.Terraform)
 	if err != nil {
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
 
@@ -176,7 +181,7 @@ func checkApplication(r *http.Request, ctx *config.RequestContext, stages *stage
 	}
 
 	ctx.Log.Infof("Commit Repo(%s)", ctx.Cell.Environment.Ansible.Name)
-	if err := repo.Persist(ctx, ctx.Cell.Environment.Ansible); err != nil {
+	if err := repo.Persist(ctx, ctx.Cell.Environment.Ansible, mustTag(ctx)); err != nil {
 		ctx.Log.Errorf("Commit error, %v", err)
 
 		stages.App.StatusCode = 1
@@ -210,6 +215,15 @@ func deployApplication(r *http.Request, ctx *config.RequestContext, stages *stag
 		stages.App.Message = fmt.Sprint(err)
 		return
 	}
+}
+
+func mustTag(ctx *config.RequestContext) bool {
+
+	if len(ctx.TagID) > 0 {
+		return true
+	}
+
+	return false
 }
 
 func mustReadState(ctx *config.RequestContext) bool {

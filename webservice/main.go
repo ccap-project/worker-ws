@@ -20,10 +20,11 @@ func Start(SystemConfig *config.SystemConfig) {
 
 	api_router.Methods("POST").Path("/infrastructure/check").HandlerFunc(makeHandler(SystemConfig, checkInfrastructure))
 	api_router.Methods("POST").Path("/infrastructure/deploy").HandlerFunc(makeHandler(SystemConfig, deployInfrastructure))
+	api_router.Methods("GET").Path("/infrastructure/deploy/{id:[A-Z0-9]+}").HandlerFunc(makeHandler(SystemConfig, deployInfrastructure))
 
 	api_router.Methods("POST").Path("/application/check").HandlerFunc(makeHandler(SystemConfig, checkApplication))
 	api_router.Methods("POST").Path("/application/deploy").HandlerFunc(makeHandler(SystemConfig, deployApplication))
-	api_router.Methods("POST").Path("/application/deploy/{id:[A-Z0-9]+}").HandlerFunc(makeHandler(SystemConfig, deployApplication))
+	api_router.Methods("GET").Path("/application/deploy/{id:[A-Z0-9]+}").HandlerFunc(makeHandler(SystemConfig, deployApplication))
 
 	server := &http.Server{
 		Handler: handlers.CombinedLoggingHandler(os.Stdout, main_router),

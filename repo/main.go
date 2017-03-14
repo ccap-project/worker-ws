@@ -28,7 +28,7 @@ func Build(ctx *config.RequestContext) error {
 	return nil
 }
 
-func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv) error {
+func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv, needTag bool) error {
 
 	commit, err := git.Commit(repoEnv.Dir, repoEnv.Dir)
 	if err != nil {
@@ -37,9 +37,11 @@ func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv) error {
 
 	//ctx.Log = ctx.SystemConfig.Log.WithFields(log.Fields{"commit_id": commit.String()})
 
-	err = git.Tag(repoEnv.Dir, commit, ctx.RunID)
-	if err != nil {
-		return err
+	if needTag {
+		err = git.Tag(repoEnv.Dir, commit, ctx.TagID)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = git.Push(repoEnv.Dir, ctx.RunID)
@@ -130,10 +132,10 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 	if err == nil && d.IsDir() {
 		ctx.Log.Infof("Checkout %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
 
-		git.Checkout(RepoEnv.Dir, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify)
+		err = git.Checkout(RepoEnv.Dir, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify, "")
 
 		if err != nil {
-			return nil, fmt.Errorf("Checkout gitlab project %s, %v", projectPath, err)
+			return nil, fmt.Errorf("Checkout repo %s, %v", projectPath, err)
 		}
 	} else {
 		os.Remove(RepoEnv.Dir)
@@ -154,6 +156,17 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		//}
 
 		os.MkdirAll(RepoEnv.Dir+"/roles", 0750)
+	}
+
+	// XXX: checkout defined tag if exists
+	if len(ctx.TagID) > 0 {
+		ctx.Log.Infof("Checkout %s on %s tag %s", Project.HTTPURLToRepo, RepoEnv.Dir, ctx.TagID)
+
+		err = git.Checkout(RepoEnv.Dir, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify, ctx.TagID)
+
+		if err != nil {
+			return nil, fmt.Errorf("Checkout gitlab project %s, tag %s, %v", projectPath, ctx.RunID, err)
+		}
 	}
 
 	return RepoEnv, nil

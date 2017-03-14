@@ -39,8 +39,9 @@ func Clone(dir string, url string, chkcert bool) error {
 	return nil
 }
 
-func Checkout(dir string, chkcert bool) error {
+func Checkout(dir string, chkcert bool, tag string) error {
 
+	var commit *git2go.Commit
 	branchName := "master"
 
 	repo, err := git2go.OpenRepository(dir)
@@ -53,53 +54,73 @@ func Checkout(dir string, chkcert bool) error {
 		Strategy: git2go.CheckoutSafe | git2go.CheckoutRecreateMissing | git2go.CheckoutAllowConflicts | git2go.CheckoutUseTheirs,
 	}
 
-	// Getting the reference for the remote branch
-	remoteBranch, err := repo.LookupBranch("origin/"+branchName, git2go.BranchRemote)
-	if err != nil {
-		return fmt.Errorf("Failed to find remote branch: %s", branchName)
-	}
-	defer remoteBranch.Free()
+	/* if tag is defined checkout that tag */
+	if len(tag) > 0 {
 
-	// Lookup for commit from remote branch
-	commit, err := repo.LookupCommit(remoteBranch.Target())
-	if err != nil {
-		return fmt.Errorf("Failed to find remote branch commit: %s", branchName)
-	}
-	defer commit.Free()
+		// Getting the reference for the remote branch
+		remote, err := repo.References.Lookup("refs/tags" + tag)
+		if err != nil || remote == nil {
+			return fmt.Errorf("Failed to find tag %s, %v", tag, err)
+		}
+		defer remote.Free()
 
-	localBranch, err := repo.LookupBranch(branchName, git2go.BranchLocal)
-	// No local branch, lets create one
-	if localBranch == nil || err != nil {
-		// Creating local branch
-		localBranch, err = repo.CreateBranch(branchName, commit, false)
+		// Lookup for commit from remote branch
+		commit, err = repo.LookupCommit(remote.Target())
 		if err != nil {
-			return fmt.Errorf("Failed to create local branch: %s", branchName)
+			return fmt.Errorf("Failed to find tag %s commit(%s), %v", tag, remote.Target(), err)
+
+		} else if commit == nil {
+			return fmt.Errorf("Can't find tag %s", tag)
+		}
+		defer commit.Free()
+	} else {
+
+		// Getting the reference for the remote branch
+		remote, err := repo.LookupBranch("origin/"+branchName, git2go.BranchRemote)
+		if err != nil {
+			return fmt.Errorf("Failed to find remote branch: %s", branchName)
+		}
+		defer remote.Free()
+
+		// Lookup for commit from remote branch
+		commit, err = repo.LookupCommit(remote.Target())
+		if err != nil {
+			return fmt.Errorf("Failed to find remote branch commit: %s", branchName)
+		}
+		defer commit.Free()
+
+		localBranch, err := repo.LookupBranch(branchName, git2go.BranchLocal)
+		// No local branch, lets create one
+		if localBranch == nil || err != nil {
+			// Creating local branch
+			localBranch, err = repo.CreateBranch(branchName, commit, false)
+			if err != nil {
+				return fmt.Errorf("Failed to create local branch: %s", branchName)
+			}
+
+			// Setting upstream to origin branch
+			err = localBranch.SetUpstream("origin/" + branchName)
+			if err != nil {
+				return fmt.Errorf("Failed to create upstream to origin/%s", branchName)
+			}
 		}
 
-		// Setting upstream to origin branch
-		err = localBranch.SetUpstream("origin/" + branchName)
+		if localBranch == nil {
+			return errors.New("Error while locating/creating local branch")
+		}
+		defer localBranch.Free()
+
+		// Getting the tree for the branch
+		commit, err = repo.LookupCommit(localBranch.Target())
 		if err != nil {
-			return fmt.Errorf("Failed to create upstream to origin/%s", branchName)
+			return fmt.Errorf("Failed to lookup for commit in local branch %s", branchName)
 		}
 	}
 
-	if localBranch == nil {
-		return errors.New("Error while locating/creating local branch")
-	}
-	defer localBranch.Free()
-
-	// Getting the tree for the branch
-	localCommit, err := repo.LookupCommit(localBranch.Target())
-	if err != nil {
-		return fmt.Errorf("Failed to lookup for commit in local branch %s", branchName)
-	}
-	defer localCommit.Free()
-
-	tree, err := repo.LookupTree(localCommit.TreeId())
+	tree, err := commit.Tree()
 	if err != nil {
 		return fmt.Errorf("Failed to lookup for tree %s", branchName)
 	}
-	defer tree.Free()
 
 	// Checkout the tree
 	err = repo.CheckoutTree(tree, checkoutOpts)
