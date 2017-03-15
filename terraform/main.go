@@ -69,11 +69,6 @@ func Deploy(ctx *config.RequestContext) error {
 		return fmt.Errorf("Failure applying Terraform, %v", err)
 	}
 
-	//SystemConfig.Log.Debug("Persisting")
-	//if err := Persist(SystemConfig, cell.Environment.Terraform.Dir); err != nil {
-	//	return fmt.Errorf("Failure applying Terraform, %v", err)
-	//}
-
 	ctx.Log.Debug("Reading state")
 
 	if err := Env.ReadState(ctx.Cell, ctx.Cell.Environment.Terraform.Dir+ctx.SystemConfig.Files.TerraformState); err != nil {
