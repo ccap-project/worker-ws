@@ -200,7 +200,14 @@ func Commit(dir string, message string) (commit *git2go.Oid, err error) {
 
 func Push(dir string, ref string) error {
 
+	var refs []string
 	branchName := "master"
+
+	refs = append(refs, "refs/heads/"+branchName)
+
+	if len(ref) > 0 {
+		refs = append(refs, "refs/tags/"+ref)
+	}
 
 	pushOptions := &git2go.PushOptions{
 		RemoteCallbacks: git2go.RemoteCallbacks{
@@ -223,7 +230,7 @@ func Push(dir string, ref string) error {
 		}
 	}
 
-	err = remote.Push([]string{"refs/heads/" + branchName, "refs/tags/" + ref}, pushOptions)
+	err = remote.Push(refs, pushOptions)
 	if err != nil {
 		return err
 	}
@@ -241,13 +248,13 @@ func Tag(dir string, commit *git2go.Oid, message string) error {
 
 	commitTarget, err := repo.LookupCommit(commit)
 	if err != nil {
-		return err
+		return fmt.Errorf("Creating tag(%s), %v", message, err)
 	}
 
 	_, err = repo.Tags.CreateLightweight(message, commitTarget, false)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Creating tag(%s), %v", message, err)
 	}
 	return nil
 }
