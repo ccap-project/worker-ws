@@ -157,6 +157,7 @@ func deployInfrastructure(r *http.Request, ctx *config.RequestContext, stages *s
 		return
 	}
 
+	err = repo.Persist(ctx, ctx.Cell.Environment.Terraform, true)
 	if err != nil {
 		ctx.Log.Errorf("Persist Terraform repo, %v", err)
 
@@ -181,7 +182,9 @@ func checkApplication(r *http.Request, ctx *config.RequestContext, stages *stage
 	}
 
 	ctx.Log.Infof("Commit Repo(%s)", ctx.Cell.Environment.Ansible.Name)
-	if err := repo.Persist(ctx, ctx.Cell.Environment.Ansible, mustTag(ctx)); err != nil {
+
+	err := repo.Persist(ctx, ctx.Cell.Environment.Ansible, mustTag(ctx))
+	if err != nil {
 		ctx.Log.Errorf("Commit error, %v", err)
 
 		stages.App.StatusCode = 1
@@ -192,11 +195,12 @@ func checkApplication(r *http.Request, ctx *config.RequestContext, stages *stage
 
 func deployApplication(r *http.Request, ctx *config.RequestContext, stages *stages) {
 
-	vars := mux.Vars(r)
-
 	stages.App.StatusCode = 0
 
-	if vars == nil {
+	/*
+	 * Only run check when a new cfg need to be generated
+	 */
+	if !mustTag(ctx) {
 		if err := ansible.Check(ctx); err != nil {
 			ctx.Log.Error("deployApplication failed, ", err)
 
@@ -211,8 +215,22 @@ func deployApplication(r *http.Request, ctx *config.RequestContext, stages *stag
 	if err := ansible.Deploy(ctx); err != nil {
 		ctx.Log.Error("deployApplication failed, ", err)
 
+		err := repo.Persist(ctx, ctx.Cell.Environment.Ansible, mustTag(ctx))
+		if err != nil {
+			ctx.Log.Errorf("Persist Ansible repo, %v", err)
+		}
+
 		stages.App.StatusCode = 1
 		stages.App.Message = fmt.Sprint(err)
+		return
+	}
+
+	err := repo.Persist(ctx, ctx.Cell.Environment.Ansible, true)
+	if err != nil {
+		ctx.Log.Errorf("Persist Ansible repo, %v", err)
+
+		stages.Infra.StatusCode = 1
+		stages.Infra.Message = fmt.Sprint(err)
 		return
 	}
 }
