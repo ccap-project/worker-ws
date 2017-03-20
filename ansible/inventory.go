@@ -48,7 +48,7 @@ func group_vars(config *config.Cell) *bytes.Buffer {
 		fmt.Fprintf(&group_vars, "[%s:vars]\n", hostgroup.Name)
 
 		if len(hostgroup.Username) > 0 {
-			fmt.Fprintf(&group_vars, "ansible_user=%s\n", hostgroup.Username)
+			fmt.Fprintf(&group_vars, "ansible_ssh_user=%s\n", hostgroup.Username)
 		}
 
 		for _, vars := range hostgroup.Vars {
