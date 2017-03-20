@@ -28,6 +28,14 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
     {{if ne .NetworkUUIDByName ""}}uuid = "${openstack_networking_network_v2.{{.Network}}.id}"{{else}}name = "{{.Network}}"{{end}}
   }
   {{if ne .KeyPair "" }}key_pair = "{{.KeyPair}}"{{end}}
+  provisioner "remote-exec" {
+    inline = [ "ls" ]
+    connection {
+      type  = "ssh"
+      user  = "{{.Username}}"
+      private_key = "${file("/Users/ale/.ssh/id_rsa")}"
+    }
+  }
 }
 `
 
