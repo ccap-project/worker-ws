@@ -38,13 +38,15 @@ func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv, needTag bool) 
 	//ctx.Log = ctx.SystemConfig.Log.WithFields(log.Fields{"commit_id": commit.String()})
 
 	if needTag {
-		err = git.Tag(repoEnv.Dir, commit, ctx.TagID)
+		err = git.Tag(repoEnv.Dir, commit, ctx.RunID)
 		if err != nil {
 			return err
 		}
+		err = git.Push(repoEnv.Dir, ctx.RunID)
+	} else {
+		err = git.Push(repoEnv.Dir, "")
 	}
 
-	err = git.Push(repoEnv.Dir, ctx.RunID)
 	if err != nil {
 		return err
 	}
@@ -71,6 +73,7 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_ROLES_PATH=%s/roles", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_LOG_PATH=%s/log", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("HOME=%s", RepoEnv.Dir))
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_PRIVATE_KEY_FILE=%s", "/Users/ale/.ssh/id_rsa"))
 		RepoEnv.Env = append(RepoEnv.Env, "ANSIBLE_GALAXY_IGNORE=true")
 		RepoEnv.Env = append(RepoEnv.Env, "GIT_SSL_NO_VERIFY=true")
 		RepoEnv.Env = append(RepoEnv.Env, "HOST_KEY_CHECKING=true")
