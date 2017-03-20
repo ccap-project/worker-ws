@@ -56,6 +56,7 @@ type Hostgroup struct {
 	Network           string              `json:"network"`
 	NetworkUUIDByName string              `json:"network_uuid_by_name"`
 	Username          string              `json:"username"`
+	BootstrapCommand  string              `json:"bootstrap_command"`
 	Vars              []map[string]string `json:"vars"`
 	Roles             []*Role             `json:"roles"`
 }
