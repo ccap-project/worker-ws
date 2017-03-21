@@ -38,6 +38,13 @@ func Serializer(config *config.SystemConfig, cell *config.Cell) error {
 	}
 	ioutil.WriteFile(cell.Environment.Ansible.Dir+config.Files.AnsibleRequirements, requirements.Bytes(), 0644)
 
+	configuration, err := configuration(cell)
+
+	if err != nil {
+		return (err)
+	}
+	ioutil.WriteFile(cell.Environment.Ansible.Dir+"ansible.cfg", configuration.Bytes(), 0644)
+
 	return (nil)
 }
 
