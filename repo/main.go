@@ -69,10 +69,6 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 
 	switch RepoType {
 	case "ansible":
-		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_INVENTORY=%s/%s", RepoEnv.Dir, ctx.SystemConfig.Files.AnsibleHosts))
-		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_ROLES_PATH=%s/roles", RepoEnv.Dir))
-		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_LOG_PATH=%s/log", RepoEnv.Dir))
-		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("HOME=%s", RepoEnv.Dir))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("ANSIBLE_PRIVATE_KEY_FILE=%s", "/Users/ale/.ssh/id_rsa"))
 		RepoEnv.Env = append(RepoEnv.Env, "ANSIBLE_GALAXY_IGNORE=true")
 		RepoEnv.Env = append(RepoEnv.Env, "GIT_SSL_NO_VERIFY=true")
