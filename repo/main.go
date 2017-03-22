@@ -57,7 +57,6 @@ func Persist(ctx *config.RequestContext, repoEnv *config.RepoEnv, needTag bool) 
 func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, error) {
 
 	var Project *gitlab.Project
-	//projectCreated := false
 
 	ctx.Log.Debugf("RepoType(%s)", RepoType)
 
