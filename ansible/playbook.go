@@ -9,14 +9,15 @@ import (
 
 const play_tmpl = `{{range .}}{{if .Roles}}- hosts: {{.Name}}
 {{if .BootstrapCommand}}  pre_tasks:
-  - name: Bootstrap Ansible
-    raw: {{.BootstrapCommand}}
-    register: output
-    changed_when: output.stdout != ""
+    - name: Bootstrap Ansible
+      raw: {{.BootstrapCommand}}
+      register: output
+      changed_when: output.stdout != ""
 {{- end}}
-  roles:
-    {{range .Roles}}- { role: '{{.Name}}', tags: [ '{{.Name}}' ]}{{end}}
 
+  roles:{{range .Roles}}
+    - { role: '{{.Name}}', tags: [ '{{.Name}}' ]}
+{{- end}}
 {{end}}{{end}}
 `
 
