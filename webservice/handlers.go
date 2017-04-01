@@ -33,27 +33,115 @@ type run_status struct {
 	Stage      stages `json:"stage"`
 }
 
+func buildContext(SystemConfig *config.SystemConfig) *config.RequestContext {
+
+	ctx := new(config.RequestContext)
+
+	ctx.SystemConfig = SystemConfig
+
+	// XXX: check id gen failure
+	runID, _ := utils.GetULID()
+
+	ctx.RunID = runID.String()
+
+	ctx.Log = SystemConfig.Log.WithFields(log.Fields{"rid": ctx.RunID})
+	// XXX: Log RemoteIP
+
+	return (ctx)
+}
+
+func uploadApplicationFile(SystemConfig *config.SystemConfig) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		//var err error
+
+		ctx := buildContext(SystemConfig)
+
+		vars := mux.Vars(r)
+
+		ctx.Cell = new(config.Cell)
+
+		ctx.Cell.Name = vars["cell"]
+		ctx.Cell.CustomerName = vars["customer"]
+
+		err := repo.Build(ctx)
+
+		if err != nil {
+			ctx.Log.Error("repo build failed, ", err)
+			panic(err)
+		}
+
+		err = r.ParseMultipartForm(1 * 1024 * 1024)
+
+		if err != nil {
+			panic(nil)
+		}
+
+		file, handler, err := r.FormFile("uploadFile")
+		if err != nil {
+			panic(nil)
+		}
+		defer file.Close()
+
+		ctx.Log.Debugf("uploadFile(%s)", handler.Filename)
+
+		destPath := fmt.Sprintf("%s/roles/%s/files/%s", ctx.Cell.Environment.Ansible.Dir, vars["role"], vars["key"])
+
+		ctx.Log.Debugf("destPath(%s)", destPath)
+
+		f, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			panic(nil)
+		}
+		defer f.Close()
+
+		_, err = io.Copy(f, file)
+
+		if err != nil {
+			panic(nil)
+		}
+
+		/*
+		 * Format output
+		 */
+		var status run_status
+
+		status.RunID = ctx.RunID
+
+		status.StatusCode = 1
+
+		err = repo.Persist(ctx, ctx.Cell.Environment.Ansible, mustTag(ctx))
+		if err != nil {
+			ctx.Log.Errorf("Commit error, %v", err)
+
+			status.Stage.App.StatusCode = 1
+			status.Stage.App.Message = fmt.Sprint(err)
+		}
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+		err = json.NewEncoder(w).Encode(status)
+		if err != nil {
+			panic(err)
+		}
+
+	}
+}
+
 func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *config.RequestContext, *stages)) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		ctx := new(config.RequestContext)
+		var err error
 
-		ctx.SystemConfig = SystemConfig
-
-		// XXX: check id gen failure
-		run_id, err := utils.GetULID()
-
-		ctx.RunID = run_id.String()
+		ctx := buildContext(SystemConfig)
 
 		vars := mux.Vars(r)
 
 		if len(vars) > 0 {
 			ctx.TagID = vars["id"]
 		}
-
-		ctx.Log = SystemConfig.Log.WithFields(log.Fields{"rid": ctx.RunID})
-		// XXX: Log RemoteIP
 
 		ctx.Cell, err = config.DecodeJson(io.LimitReader(r.Body, SystemConfig.WebService.BodyLimit))
 
@@ -73,7 +161,7 @@ func makeHandler(SystemConfig *config.SystemConfig, fn func(*http.Request, *conf
 		err = repo.Build(ctx)
 
 		if err != nil {
-			ctx.Log.Error("makeHandler failed, ", err)
+			ctx.Log.Error("repo build failed, ", err)
 			panic(err)
 		}
 
