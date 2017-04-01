@@ -4,6 +4,11 @@ import "bytes"
 import "fmt"
 
 import "../config/"
+import "../utils/"
+
+const files_tmpl = `{{range .}}{{if .Files}}{{.Name}}_files={ {{range .Files}}'{{.Key}}': { 'filename': '{{.Filename}}', {{end}} } }
+{{end}}{{end}}
+`
 
 func hosts(config *config.Cell) *bytes.Buffer {
 
@@ -55,6 +60,12 @@ func group_vars(config *config.Cell) *bytes.Buffer {
 			for k, v := range vars {
 				fmt.Fprintf(&group_vars, "%s=%s\n", k, v)
 			}
+		}
+		fmt.Fprintf(&group_vars, "\n")
+
+		p, err := utils.Template(files_tmpl, hostgroup.Roles)
+		if err == nil {
+			group_vars.Write(p.Bytes())
 		}
 		fmt.Fprintf(&group_vars, "\n")
 	}

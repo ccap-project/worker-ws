@@ -41,10 +41,16 @@ type Host struct {
 	Options []map[string]string `json:"options"`
 }
 
+type File struct {
+	Key      string `json:"key"`
+	Filename string `json:"filename"`
+}
+
 type Role struct {
 	Name    string `json:"name"`
 	Source  string `json:"src"`
 	Version string `json:"version"`
+	Files   []*File
 }
 
 type Hostgroup struct {
