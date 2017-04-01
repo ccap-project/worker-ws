@@ -125,8 +125,14 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		ctx.Log.Infof("Created project(%s)", projectPath)
 	}
 
+	/*
+	 * Local repo handling
+	 */
 	d, err := os.Stat(RepoEnv.Dir)
 
+	/*
+	 * Use existant directory structure
+	 */
 	if err == nil && d.IsDir() {
 		ctx.Log.Infof("Checkout %s on %s", Project.HTTPURLToRepo, RepoEnv.Dir)
 
@@ -135,7 +141,11 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		if err != nil {
 			return nil, fmt.Errorf("Checkout repo %s, %v", projectPath, err)
 		}
+
 	} else {
+		/*
+		 * Clone remote directory structure
+		 */
 		os.Remove(RepoEnv.Dir)
 
 		if err := os.MkdirAll(RepoEnv.Dir, 0750); err != nil {
