@@ -303,13 +303,15 @@ func deployApplication(r *http.Request, ctx *config.RequestContext, stages *stag
 	if err := ansible.Deploy(ctx); err != nil {
 		ctx.Log.Error("deployApplication failed, ", err)
 
+		stages.App.Message = fmt.Sprint(err)
+
 		err := repo.Persist(ctx, ctx.Cell.Environment.Ansible, mustTag(ctx))
 		if err != nil {
 			ctx.Log.Errorf("Persist Ansible repo, %v", err)
+			stages.App.Message = fmt.Sprint(err)
 		}
 
 		stages.App.StatusCode = 1
-		stages.App.Message = fmt.Sprint(err)
 		return
 	}
 
