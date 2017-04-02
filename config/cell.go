@@ -44,6 +44,7 @@ type Host struct {
 type File struct {
 	Key      string `json:"key"`
 	Filename string `json:"filename"`
+	DontCopy string `json:"dont_copy"`
 }
 
 type Role struct {
