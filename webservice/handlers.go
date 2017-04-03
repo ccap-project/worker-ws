@@ -86,11 +86,15 @@ func uploadApplicationFile(SystemConfig *config.SystemConfig) http.HandlerFunc {
 
 		ctx.Log.Debugf("uploadFile(%s)", handler.Filename)
 
-		destPath := fmt.Sprintf("%s/roles/%s/files/%s", ctx.Cell.Environment.Ansible.Dir, vars["role"], vars["key"])
+		destPath := fmt.Sprintf("%s/files/%s/", ctx.Cell.Environment.Ansible.Dir, vars["role"])
 
 		ctx.Log.Debugf("destPath(%s)", destPath)
 
-		f, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE, 0666)
+		if err := os.MkdirAll(destPath, 0755); err != nil {
+			panic(fmt.Errorf("Creating %s, %v", destPath, err))
+		}
+
+		f, err := os.OpenFile(destPath+vars["key"], os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			panic(nil)
 		}
