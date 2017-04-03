@@ -25,6 +25,8 @@ func RolesInstall(system *config.SystemConfig, cell *config.Cell) error {
 
 func Run(system *config.SystemConfig, cell *config.Cell) error {
 
+	os.Remove(cell.Environment.Ansible.Dir + "/log")
+
 	out, err := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, system.Files.AnsiblePlaybook)
 
 	if err != nil {
