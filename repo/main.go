@@ -85,6 +85,7 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 	if err != nil {
 		return nil, fmt.Errorf("connecting to gitlab %s, %v", ctx.SystemConfig.Gitlab.Url, err)
 	}
+	defer Gitlab.Body.Close()
 
 	Group, res, err := Gitlab.Groups.GetGroup(ctx.Cell.CustomerName)
 
@@ -139,14 +140,18 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		err = git.Checkout(RepoEnv.Dir, ctx.SystemConfig.Gitlab.TLSInsecureSkipVerify, "")
 
 		if err != nil {
-			return nil, fmt.Errorf("Checkout repo %s, %v", projectPath, err)
+			ctx.Log.Errorf("Checkout repo %s, %v", projectPath, err)
 		}
+	}
 
-	} else {
+	/*
+	 * On any error, even when checkout failed
+	 */
+	if err != nil {
 		/*
 		 * Clone remote directory structure
 		 */
-		os.Remove(RepoEnv.Dir)
+		os.RemoveAll(RepoEnv.Dir)
 
 		if err := os.MkdirAll(RepoEnv.Dir, 0750); err != nil {
 			return nil, fmt.Errorf("Creating %s, %v", RepoEnv.Dir, err)

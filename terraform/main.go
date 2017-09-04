@@ -25,10 +25,10 @@ func Init(provider string) Terraform {
 
 func Check(ctx *config.RequestContext) error {
 
-	Env := Init(ctx.Cell.Provider.Name)
+	Env := Init(ctx.Cell.Provider.Type)
 
 	if Env == nil {
-		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Name)
+		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Type)
 	}
 
 	ctx.Log.Debug("Serializing")
@@ -46,10 +46,10 @@ func Check(ctx *config.RequestContext) error {
 
 func Deploy(ctx *config.RequestContext) error {
 
-	Env := Init(ctx.Cell.Provider.Name)
+	Env := Init(ctx.Cell.Provider.Type)
 
 	if Env == nil {
-		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Name)
+		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Type)
 	}
 
 	ctx.Log.Debug("Serializing")
@@ -80,9 +80,9 @@ func Deploy(ctx *config.RequestContext) error {
 
 func ReadState(ctx *config.RequestContext) error {
 
-	Env := Init(ctx.Cell.Provider.Name)
+	Env := Init(ctx.Cell.Provider.Type)
 	if Env == nil {
-		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Name)
+		return fmt.Errorf("Terraform support for provider(%s) is not implemented ! \n", ctx.Cell.Provider.Type)
 	}
 
 	ctx.Log.Debug("Reading state")

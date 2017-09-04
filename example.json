@@ -3,11 +3,11 @@
   "customer_name": "skyfaster",
   "provider": {
     "name": "Openstack",
-    "region": "br-sp1",
-    "tenantname": "uolcloudBiancalana",
-    "username": "uolcloudBiancalana",
-    "password": "hercules13",
-    "auth_url": "https://keystone.br-sp1.openstack.uolcloud.com.br:5000/v2.0"
+    "domain_name": "default",
+    "tenantname": "admin",
+    "username": "admin",
+    "password": "123",
+    "auth_url": "http://192.168.120.10:5000/v3"
   },
   "routers": [
     {

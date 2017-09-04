@@ -25,7 +25,8 @@ type Provider struct {
 	Name       string `json:"name"`
 	DomainName string `json:"domain_name"`
 	Region     string `json:"region"`
-	Tenantname string `json:"tenantname"`
+	TenantName string `json:"tenant_name"`
+	Type       string `json:"type"`
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 	AuthUrl    string `json:"auth_url"`
@@ -59,7 +60,7 @@ type Hostgroup struct {
 	Flavor            string              `json:"flavor"`
 	Image             string              `json:"image"`
 	KeyPair           string              `json:"key_pair"`
-	Count             string              `json:"count"`
+	Count             json.Number         `json:"count,Number"`
 	Network           string              `json:"network"`
 	NetworkUUIDByName string              `json:"network_uuid_by_name"`
 	Username          string              `json:"username"`
