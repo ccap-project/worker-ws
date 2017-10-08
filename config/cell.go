@@ -48,11 +48,17 @@ type File struct {
 	DontCopy string `json:"dont_copy"`
 }
 
+type RoleParam struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type Role struct {
 	Name    string `json:"name"`
-	Source  string `json:"src"`
+	Source  string `json:"url"`
 	Version string `json:"version"`
 	Files   []*File
+	Params  []*RoleParam `json:"params"`
 }
 
 type Hostgroup struct {
