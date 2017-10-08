@@ -1,7 +1,7 @@
 package ansible
 
 import "bytes"
-import "../config/"
+import "../config"
 import "../utils"
 
 const require_tmpl = `- src: {{.Source}}
