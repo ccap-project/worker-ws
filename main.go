@@ -1,7 +1,7 @@
 package main
 
-import "./config/"
-import "./webservice/"
+import "./config"
+import "./webservice"
 
 func main() {
 

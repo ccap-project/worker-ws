@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"../config/"
-	"../git/"
-	"../gitlab/"
+	"../config"
+	"../git"
+	"../gitlab"
 )
 
 func Build(ctx *config.RequestContext) error {
@@ -85,7 +85,7 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 	if err != nil {
 		return nil, fmt.Errorf("connecting to gitlab %s, %v", ctx.SystemConfig.Gitlab.Url, err)
 	}
-	defer Gitlab.Body.Close()
+	//defer Gitlab.Body.Close()
 
 	Group, res, err := Gitlab.Groups.GetGroup(ctx.Cell.CustomerName)
 
@@ -107,9 +107,9 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 		}
 		ctx.Log.Infof("Created group(%s)", ctx.Cell.CustomerName)
 	} else {
-		for _, v := range *Group.Projects {
+		for _, v := range Group.Projects {
 			if v.Name == RepoEnv.Name {
-				Project = &gitlab.Project{&v}
+				Project = &gitlab.Project{v}
 				break
 			}
 		}
