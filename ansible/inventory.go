@@ -1,13 +1,31 @@
 package ansible
 
-import "bytes"
-import "fmt"
+import (
+	"bytes"
+	"fmt"
 
-import "../config/"
-import "../utils/"
+	"../config"
+	"../utils"
+)
 
 const files_tmpl = `{{range .}}{{if .Files}}{{.Name}}_files={ {{range .Files}}'{{.Key}}': { 'filename': '{{.Filename}}'{{if .DontCopy}}, 'dont_copy': 'true'{{end}}  }, {{end}} }
 {{end}}{{end}}
+`
+
+const hostgroupTmpl = `{{range .}}[{{.Name}}]
+{{.Name}}[1:{{.Count}}]
+{{end}}
+`
+
+const hostgroupRolesTmpl = `{{range .}}[{{.Name}}:vars]
+{{if .Username}}ansible_ssh_user={{.Username}}
+{{- end -}}
+{{range .Roles}}
+# {{.Name -}}{{range .Params}}
+{{.Name}}={{.Value}}
+{{- end}}
+{{- end}}
+{{end}}
 `
 
 func hosts(config *config.Cell) *bytes.Buffer {
@@ -31,46 +49,33 @@ func hosts(config *config.Cell) *bytes.Buffer {
 	return (&hosts)
 }
 
-func hostgroups(config *config.Cell) *bytes.Buffer {
+func hostgroups(config *config.Cell) (*bytes.Buffer, error) {
 
 	var hostgroups bytes.Buffer
 
-	// XXX: Move this loop to template
-	for _, hostgroup := range config.Hostgroups {
-		fmt.Fprintf(&hostgroups, "[%s]\n", hostgroup.Name)
-		fmt.Fprintf(&hostgroups, "%s[1:%s]\n\n", hostgroup.Name, hostgroup.Count)
+	p, err := utils.Template(hostgroupTmpl, config.Hostgroups)
+	if err != nil {
+		return nil, err
 	}
 
-	return (&hostgroups)
+	hostgroups.Write(p.Bytes())
+
+	return &hostgroups, nil
 }
 
-func group_vars(config *config.Cell) *bytes.Buffer {
+func group_vars(config *config.Cell) (*bytes.Buffer, error) {
 
 	var group_vars bytes.Buffer
 
-	// XXX: Move this loop to template
-	for _, hostgroup := range config.Hostgroups {
-		fmt.Fprintf(&group_vars, "[%s:vars]\n", hostgroup.Name)
-
-		if len(hostgroup.Username) > 0 {
-			fmt.Fprintf(&group_vars, "ansible_ssh_user=%s\n", hostgroup.Username)
-		}
-
-		for _, vars := range hostgroup.Vars {
-			for k, v := range vars {
-				fmt.Fprintf(&group_vars, "%s=%s\n", k, v)
-			}
-		}
-		fmt.Fprintf(&group_vars, "\n")
-
-		p, err := utils.Template(files_tmpl, hostgroup.Roles)
-		if err == nil {
-			group_vars.Write(p.Bytes())
-		}
-		fmt.Fprintf(&group_vars, "\n")
+	p, err := utils.Template(hostgroupRolesTmpl, config.Hostgroups)
+	if err != nil {
+		fmt.Printf("\n=====================%s==================\n", hostgroupRolesTmpl)
+		return nil, err
 	}
 
-	return (&group_vars)
+	group_vars.Write(p.Bytes())
+
+	return &group_vars, nil
 }
 
 func GetInventoryFilename(config *config.SystemConfig, cell *config.Cell) string {
