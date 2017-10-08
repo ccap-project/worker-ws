@@ -3,7 +3,7 @@ package terraform
 import (
 	"fmt"
 
-	"../config/"
+	"../config"
 	"./openstack"
 )
 

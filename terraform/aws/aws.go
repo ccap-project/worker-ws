@@ -1,14 +1,14 @@
 package aws
 
 import "fmt"
-import "../../config/"
+import "../../config"
 
 //type hostgroup config.Hostgroup
 
-func Serializer (config *config.Config) {
+func Serializer(config *config.Config) {
 
-  instance(config)
-  //config.Hostgroups.Marshall()
-  fmt.Println("Here !")
-  //fmt.Println(config.HostGroups)
+	instance(config)
+	//config.Hostgroups.Marshall()
+	fmt.Println("Here !")
+	//fmt.Println(config.HostGroups)
 }
