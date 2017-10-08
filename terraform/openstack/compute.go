@@ -5,7 +5,7 @@ import "bytes"
 //import "text/template"
 //import "os"
 
-import "../../config/"
+import "../../config"
 import "../../utils"
 
 const keypair_resource_tmpl = `

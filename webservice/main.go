@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"../config/"
+	"../config"
 )
 
 func Start(SystemConfig *config.SystemConfig) {

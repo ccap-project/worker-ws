@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"../../config/"
+	"../../config"
 	"../../utils"
 	"../common"
 )
