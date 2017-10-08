@@ -62,17 +62,17 @@ type Role struct {
 }
 
 type Hostgroup struct {
-	Name              string              `json:"name"`
-	Flavor            string              `json:"flavor"`
-	Image             string              `json:"image"`
-	KeyPair           string              `json:"key_pair"`
-	Count             json.Number         `json:"count,Number"`
-	Network           string              `json:"network"`
-	NetworkUUIDByName string              `json:"network_uuid_by_name"`
-	Username          string              `json:"username"`
-	BootstrapCommand  string              `json:"bootstrap_command"`
-	Vars              []map[string]string `json:"vars"`
-	Roles             []*Role             `json:"roles"`
+	Name              string      `json:"name"`
+	Flavor            string      `json:"flavor"`
+	Image             string      `json:"image"`
+	KeyPair           string      `json:"key_pair"`
+	Count             json.Number `json:"count,Number"`
+	Network           string      `json:"network"`
+	NetworkUUIDByName string      `json:"network_uuid_by_name"`
+	Username          string      `json:"username"`
+	Component         string      `json:"component"`
+	BootstrapCommand  string      `json:"bootstrap_command"`
+	Roles             []*Role     `json:"roles"`
 }
 
 type Network struct {
