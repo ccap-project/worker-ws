@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"../config/"
+	"../config"
 )
 
 func Serializer(config *config.SystemConfig, cell *config.Cell) error {
@@ -16,32 +16,37 @@ func Serializer(config *config.SystemConfig, cell *config.Cell) error {
 		inventory.Write(hosts.Bytes())
 	}
 
-	if hostgroups := hostgroups(cell); hostgroups != nil {
-		inventory.Write(hostgroups.Bytes())
+	hostgroups, err := hostgroups(cell)
+	if err != nil {
+		return fmt.Errorf("inventory hostgroups, %v", err)
 	}
 
-	if group_vars := group_vars(cell); group_vars != nil {
-		inventory.Write(group_vars.Bytes())
+	inventory.Write(hostgroups.Bytes())
+
+	group_vars, err := group_vars(cell)
+	if err != nil {
+		return fmt.Errorf("inventory groupvars, %v", err)
 	}
+
+	inventory.Write(group_vars.Bytes())
 
 	ioutil.WriteFile(GetInventoryFilename(config, cell), inventory.Bytes(), 0644)
 
 	playbook, err := playbook(cell)
 	if err != nil {
-		return (err)
+		return fmt.Errorf("playbook, %v", err)
 	}
 	ioutil.WriteFile(cell.Environment.Ansible.Dir+config.Files.AnsiblePlaybook, playbook.Bytes(), 0644)
 
 	requirements, err := requirements(cell)
 	if err != nil {
-		return (err)
+		return fmt.Errorf("requirements, %v", err)
 	}
 	ioutil.WriteFile(cell.Environment.Ansible.Dir+config.Files.AnsibleRequirements, requirements.Bytes(), 0644)
 
 	configuration, err := configuration(cell)
-
 	if err != nil {
-		return (err)
+		return fmt.Errorf("configuration, %v", err)
 	}
 	ioutil.WriteFile(cell.Environment.Ansible.Dir+"ansible.cfg", configuration.Bytes(), 0644)
 
@@ -51,7 +56,7 @@ func Serializer(config *config.SystemConfig, cell *config.Cell) error {
 func Check(ctx *config.RequestContext) error {
 
 	if err := Serializer(ctx.SystemConfig, ctx.Cell); err != nil {
-		return fmt.Errorf("Failure serializing Ansible Openstack file, %v", err)
+		return fmt.Errorf("Failure serializing Ansible %v", err)
 	}
 
 	if err := RolesInstall(ctx.SystemConfig, ctx.Cell); err != nil {
