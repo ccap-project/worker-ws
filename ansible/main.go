@@ -12,9 +12,12 @@ func Serializer(config *config.SystemConfig, cell *config.Cell) error {
 
 	var inventory bytes.Buffer
 
-	if hosts := hosts(cell); hosts != nil {
-		inventory.Write(hosts.Bytes())
+	hosts, err := hosts(cell)
+
+	if err != nil {
+		return fmt.Errorf("inventory hosts, %v", err)
 	}
+	inventory.Write(hosts.Bytes())
 
 	hostgroups, err := hostgroups(cell)
 	if err != nil {
