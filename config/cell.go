@@ -37,9 +37,14 @@ type KeyPair struct {
 	PublicKey string `json:"public_key"`
 }
 
+type Param struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type Host struct {
-	Name    string              `json:"name"`
-	Options []map[string]string `json:"options"`
+	Name    string   `json:"name"`
+	Options []*Param `json:"options"`
 }
 
 type File struct {
@@ -48,17 +53,12 @@ type File struct {
 	DontCopy string `json:"dont_copy"`
 }
 
-type RoleParam struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 type Role struct {
 	Name    string `json:"name"`
 	Source  string `json:"url"`
 	Version string `json:"version"`
 	Files   []*File
-	Params  []*RoleParam `json:"params"`
+	Params  []*Param `json:"params"`
 }
 
 type Hostgroup struct {

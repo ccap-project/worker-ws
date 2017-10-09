@@ -19,10 +19,11 @@ func (o *Openstack) ReadState(cell *config.Cell, file string) error {
 			switch rv.Type {
 			case "openstack_compute_instance_v2":
 				host := new(config.Host)
-				option := make(map[string]string)
+				option := new(config.Param)
 
 				host.Name = rv.Primary.Attributes["name"]
-				option["ansible_host"] = rv.Primary.Attributes["access_ip_v4"]
+				option.Name = "ansible_host"
+				option.Value = rv.Primary.Attributes["access_ip_v4"]
 
 				host.Options = append(host.Options, option)
 				cell.Hosts = append(cell.Hosts, host)
