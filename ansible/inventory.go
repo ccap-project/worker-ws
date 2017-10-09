@@ -12,6 +12,10 @@ const files_tmpl = `{{range .}}{{if .Files}}{{.Name}}_files={ {{range .Files}}'{
 {{end}}{{end}}
 `
 
+const hostTmpl = `{{range .}}{{.Name}}{{if .Options}}{{range .Options}} {{.Name}}={{.Value}}{{end}}{{end}}{{end}}
+
+`
+
 const hostgroupTmpl = `{{range .}}[{{.Name}}]
 {{.Name}}[1:{{.Count}}]
 {{end}}
@@ -28,25 +32,18 @@ const hostgroupRolesTmpl = `{{range .}}[{{.Name}}:vars]
 {{end}}
 `
 
-func hosts(config *config.Cell) *bytes.Buffer {
+func hosts(config *config.Cell) (*bytes.Buffer, error) {
 
 	var hosts bytes.Buffer
 
-	// XXX: Move this loop to template
-	for _, host := range config.Hosts {
-
-		fmt.Fprintf(&hosts, "%s", host.Name)
-
-		for _, opt := range host.Options {
-			for k, v := range opt {
-				fmt.Fprintf(&hosts, " %s=%s", k, v)
-			}
-		}
-		fmt.Fprintf(&hosts, "\n")
+	p, err := utils.Template(hostTmpl, config.Hosts)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Fprintf(&hosts, "\n")
 
-	return (&hosts)
+	hosts.Write(p.Bytes())
+
+	return &hosts, nil
 }
 
 func hostgroups(config *config.Cell) (*bytes.Buffer, error) {
