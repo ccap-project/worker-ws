@@ -12,6 +12,8 @@ inventory = {{.Environment.Ansible.Dir}}hosts
 roles_path = {{.Environment.Ansible.Dir}}roles
 log_path = {{.Environment.Ansible.Dir}}log
 host_key_checking = False
+[ssh_connection]
+control_path = %(directory)s/%%C
 `
 
 func configuration(cell *config.Cell) (*bytes.Buffer, error) {
