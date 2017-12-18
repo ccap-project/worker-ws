@@ -12,7 +12,8 @@ const files_tmpl = `{{range .}}{{if .Files}}{{.Name}}_files={ {{range .Files}}'{
 {{end}}{{end}}
 `
 
-const hostTmpl = `{{range .}}{{.Name}}{{if .Options}}{{range .Options}} {{.Name}}={{.Value}}{{end}}{{end}}{{end}}
+const hostTmpl = `{{range .}}{{.Name}}{{if .Options}}{{range .Options}} {{.Name}}={{.Value}}{{end}}
+{{end}}{{end}}
 
 `
 
@@ -23,6 +24,7 @@ const hostgroupTmpl = `{{range .}}[{{.Name}}]
 
 const hostgroupRolesTmpl = `{{range .}}[{{.Name}}:vars]
 {{if .Username}}ansible_ssh_user={{.Username}}
+ansible_become=true
 {{- end -}}
 {{range .Roles}}
 # {{.Name -}}{{range .Params}}

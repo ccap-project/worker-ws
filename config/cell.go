@@ -75,6 +75,17 @@ type Hostgroup struct {
 	Roles             []*Role     `json:"roles"`
 }
 
+type Hostgroups []*Hostgroup
+
+func (h Hostgroups) Len() int      { return len(h) }
+func (h Hostgroups) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+
+type HostgroupByName struct{ Hostgroups }
+
+func (s HostgroupByName) Less(i, j int) bool {
+	return s.Hostgroups[i].BootstrapCommand < s.Hostgroups[j].BootstrapCommand
+}
+
 type Network struct {
 	Name       string `json:"name"`
 	AdminState string `json:"admin_state"`

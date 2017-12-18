@@ -3,6 +3,7 @@ package ansible
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"../config"
 	"../utils"
@@ -30,7 +31,11 @@ func Run(system *config.SystemConfig, cell *config.Cell) error {
 	out, err := utils.RunCmd(cell.Environment.Ansible.Dir, cell.Environment.Ansible.Env, system.Commands.Ansible, system.Files.AnsiblePlaybook)
 
 	if err != nil {
-		return fmt.Errorf("%v, %s", err, out)
+
+		c, _ := strconv.Unquote(fmt.Sprintf("%q", *out))
+
+		fmt.Print(c)
+		return fmt.Errorf("%v, %s", err, c)
 	}
 
 	return nil
