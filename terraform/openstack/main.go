@@ -59,6 +59,11 @@ func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) er
 		return (err)
 	}
 
+	keypair, err := keypair(cell)
+	if err != nil {
+		return (err)
+	}
+
 	instance, err := instance(cell)
 	if err != nil {
 		return (err)
@@ -69,6 +74,7 @@ func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) er
 	tf.Write(router_interface.Bytes())
 	tf.Write(network.Bytes())
 	tf.Write(subnet.Bytes())
+	tf.Write(keypair.Bytes())
 	tf.Write(instance.Bytes())
 
 	ioutil.WriteFile(terraformSite, tf.Bytes(), 0644)

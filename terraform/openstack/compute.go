@@ -1,17 +1,19 @@
 package openstack
 
-import "bytes"
+import (
+	"bytes"
+
+	"../../config"
+	"../../utils"
+)
 
 //import "text/template"
 //import "os"
 
-import "../../config"
-import "../../utils"
-
 const keypair_resource_tmpl = `
-resource "openstack_compute_keypair_v2" "{.KeyName}" {
-  name = "{.KeyName}"
-  public_key = "{.PublicKey}"
+resource "openstack_compute_keypair_v2" "{{.Name}}" {
+  name = "{{.Name}}"
+  public_key = "{{.PublicKey}}"
 }
 `
 
@@ -31,6 +33,7 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
   provisioner "remote-exec" {
     inline = [ "ls" ]
     connection {
+      agent = "false"
       type  = "ssh"
       user  = "{{.Username}}"
       private_key = "${file("/Users/ale/.ssh/id_rsa")}"
@@ -44,6 +47,7 @@ func instance(config *config.Cell) (*bytes.Buffer, error) {
 	var instances bytes.Buffer
 
 	for _, h := range config.Hostgroups {
+		h.KeyPair = config.KeyPair.Name
 		i, err := utils.Template(instance_resource_tmpl, h)
 		if err != nil {
 			return nil, err
@@ -59,7 +63,7 @@ func keypair(config *config.Cell) (*bytes.Buffer, error) {
 
 	var keypair bytes.Buffer
 
-	k, err := utils.Template(instance_resource_tmpl, config.KeyPair)
+	k, err := utils.Template(keypair_resource_tmpl, config.KeyPair)
 	if err != nil {
 		return nil, err
 	}
