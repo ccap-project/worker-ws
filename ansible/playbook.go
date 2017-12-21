@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"../config"
-	"../utils"
+	"worker-ws/config"
+	"worker-ws/utils"
 )
 
 type BootstrapGroup struct {

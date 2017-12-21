@@ -3,8 +3,8 @@ package terraformcommon
 import (
 	"fmt"
 
-	"../../config"
-	"../../utils"
+	"worker-ws/config"
+	"worker-ws/utils"
 )
 
 func Apply(SystemConfig *config.SystemConfig, cell *config.Cell) (*[]byte, error) {

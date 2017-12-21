@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"../../config"
-	"../../utils"
-	"../common"
+	"worker-ws/config"
+	"worker-ws/utils"
+	"worker-ws/terraform/common"
 )
 
 type Openstack struct{}

@@ -3,12 +3,10 @@ package openstack
 import (
 	"bytes"
 
-	"../../config"
-	"../../utils"
+	"worker-ws/config"
+	"worker-ws/utils"
 )
 
-//import "text/template"
-//import "os"
 
 const keypair_resource_tmpl = `
 resource "openstack_compute_keypair_v2" "{{.Name}}" {

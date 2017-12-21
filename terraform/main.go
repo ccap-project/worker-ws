@@ -3,8 +3,8 @@ package terraform
 import (
 	"fmt"
 
-	"../config"
-	"./openstack"
+	"worker-ws/config"
+	"worker-ws/terraform/openstack"
 )
 
 type Terraform interface {

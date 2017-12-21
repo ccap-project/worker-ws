@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	"../config"
-	"../utils"
+	"worker-ws/config"
+	"worker-ws/utils"
 )
 
 func RolesInstall(system *config.SystemConfig, cell *config.Cell) error {

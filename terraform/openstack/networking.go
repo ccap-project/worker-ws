@@ -2,8 +2,8 @@ package openstack
 
 import "bytes"
 
-import "../../config/"
-import "../../utils"
+import "worker-ws/config"
+import "worker-ws/utils"
 
 const network_resource_tmpl = `
 resource "openstack_networking_network_v2" "{{.Name}}" {

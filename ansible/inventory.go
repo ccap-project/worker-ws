@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"../config"
-	"../utils"
+	"worker-ws/config"
+	"worker-ws/utils"
 )
 
 const files_tmpl = `{{range .}}{{if .Files}}{{.Name}}_files={ {{range .Files}}'{{.Key}}': { 'filename': '{{.Filename}}'{{if .DontCopy}}, 'dont_copy': 'true'{{end}}  }, {{end}} }

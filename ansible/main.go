@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"../config"
+	"worker-ws/config"
 )
 
 func Serializer(config *config.SystemConfig, cell *config.Cell) error {

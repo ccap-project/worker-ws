@@ -1,8 +1,8 @@
 package openstack
 
 import (
-	"../../config"
-	"../common"
+	"worker-ws/config"
+	"worker-ws/terraform/common"
 )
 
 func (o *Openstack) ReadState(cell *config.Cell, file string) error {

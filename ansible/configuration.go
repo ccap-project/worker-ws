@@ -3,8 +3,8 @@ package ansible
 import (
 	"bytes"
 
-	"../config"
-	"../utils"
+	"worker-ws/config"
+	"worker-ws/utils"
 )
 
 const cfg_tmpl = `[defaults]

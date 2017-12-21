@@ -1,8 +1,8 @@
 package ansible
 
 import "bytes"
-import "../config"
-import "../utils"
+import "worker-ws/config"
+import "worker-ws/utils"
 
 const require_tmpl = `- src: {{.Source}}
   version: {{.Version}}
