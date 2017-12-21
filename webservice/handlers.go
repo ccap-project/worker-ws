@@ -10,11 +10,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 
-	"../ansible"
-	"../config"
-	"../repo"
-	"../terraform"
-	"../utils"
+	"worker-ws/ansible"
+	"worker-ws/config"
+	"worker-ws/repo"
+	"worker-ws/terraform"
+	"worker-ws/utils"
 )
 
 type stages struct {

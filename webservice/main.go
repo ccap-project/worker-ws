@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"../config"
+	"worker-ws/config"
 )
 
 func Start(SystemConfig *config.SystemConfig) {

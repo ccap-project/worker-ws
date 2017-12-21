@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	git2go "gopkg.in/libgit2/git2go.v26"
+	git2go "github.com/libgit2/git2go"
 )
 
 func certificateCheckCallback(cert *git2go.Certificate, valid bool, hostname string) git2go.ErrorCode {

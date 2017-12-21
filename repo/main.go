@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"../config"
-	"../git"
-	"../gitlab"
+	"worker-ws/config"
+	"worker-ws/git"
+	"worker-ws/gitlab"
 )
 
 func Build(ctx *config.RequestContext) error {
