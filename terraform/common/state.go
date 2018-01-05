@@ -27,7 +27,7 @@
  *
  */
 
-package terraformcommon
+package common
 
 import (
 	"os"
