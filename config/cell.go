@@ -101,6 +101,7 @@ type Hostgroup struct {
 	Username          string      `json:"username"`
 	Component         string      `json:"component"`
 	BootstrapCommand  string      `json:"bootstrap_command"`
+	Order             json.Number `json:"order"`
 	Roles             []*Role     `json:"roles"`
 }
 
@@ -113,6 +114,12 @@ type HostgroupByName struct{ Hostgroups }
 
 func (s HostgroupByName) Less(i, j int) bool {
 	return s.Hostgroups[i].BootstrapCommand < s.Hostgroups[j].BootstrapCommand
+}
+
+type HostgroupByOrder struct{ Hostgroups }
+
+func (s HostgroupByOrder) Less(i, j int) bool {
+	return s.Hostgroups[i].Order < s.Hostgroups[j].Order
 }
 
 type Network struct {

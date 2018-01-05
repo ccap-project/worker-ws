@@ -90,19 +90,19 @@ const bootstrap_tmpl = `
 {{end}}
 `
 
-const play_tmpl = `{{range .}}{{if .Roles}}- hosts: {{.Name}}
+const play_tmpl = `{{range .}}{{if .Roles}}- hosts: {{.Name}} {{if .Order}}# Order {{.Order}}{{end}}
 {{$Component := .Component}}  roles:{{range .Roles}}
     - { role: '{{.Name}}', tags: [ '{{.Name}}'{{if $Component}}, '{{$Component}}'{{end}} ]}
 
 {{end}}{{end}}{{end}}`
 
-func playbook(config *config.Cell) (*bytes.Buffer, error) {
+func playbook(cell *config.Cell) (*bytes.Buffer, error) {
 
 	var plays bytes.Buffer
 
 	plays.Write([]byte("---\n"))
 
-	bootstrapCommands := groupBootstrapCommand(config.Hostgroups)
+	bootstrapCommands := groupBootstrapCommand(cell.Hostgroups)
 
 	if bootstrapCommands != nil {
 		p, err := utils.Template(bootstrap_tmpl, bootstrapCommands)
@@ -112,7 +112,10 @@ func playbook(config *config.Cell) (*bytes.Buffer, error) {
 		plays.Write(p.Bytes())
 	}
 
-	p, err := utils.Template(play_tmpl, config.Hostgroups)
+	// Ensure ordering when specified
+	sort.Sort(config.HostgroupByOrder{cell.Hostgroups})
+
+	p, err := utils.Template(play_tmpl, cell.Hostgroups)
 	if err != nil {
 		return nil, err
 	}
