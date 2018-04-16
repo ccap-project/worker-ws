@@ -103,6 +103,7 @@ type Hostgroup struct {
 	BootstrapCommand  string      `json:"bootstrap_command"`
 	Order             json.Number `json:"order"`
 	Roles             []*Role     `json:"roles"`
+	Securitygroups    []string    `json:"securitygroups"`
 }
 
 type Hostgroups []*Hostgroup
@@ -138,6 +139,22 @@ type RouterInterface struct {
 	Subnet string `json:"subnet"`
 }
 
+type Securitygroup struct {
+	Name  string                `json:"name"`
+	Rules []*SecuritygroupRules `json:"rules"`
+}
+
+type SecuritygroupRules struct {
+	DestinationAddr          string `json:"destination_addr,omitempty"`
+	DestinationPort          string `json:"destination_port,omitempty"`
+	DestinationSecuritygroup string `json:"destination_securitygroup,omitempty"`
+	Ethertype                string `json:"ethertype,omitempty"`
+	Proto                    string `json:"proto,omitempty"`
+	SourceAddr               string `json:"source_addr,omitempty"`
+	SourcePort               string `json:"source_port,omitempty"`
+	SourceSecuritygroup      string `json:"source_securitygroup,omitempty"`
+}
+
 type Subnet struct {
 	Name       string `json:"name"`
 	Cidr       string `json:"cidr"`
@@ -158,6 +175,7 @@ type Cell struct {
 	Subnets           []*Subnet          `json:"subnets"`
 	Routers           []*Router          `json:"routers"`
 	RoutersInterfaces []*RouterInterface `json:"routers_interfaces"`
+	Securitygroups    []*Securitygroup   `json:"securitygroups"`
 }
 
 func DecodeJson(r io.Reader) (*Cell, error) {

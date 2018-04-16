@@ -63,6 +63,24 @@ resource "openstack_networking_subnet_v2" "{{.Name}}" {
 }
 `
 
+const secgroup_resource_tmpl = `
+resource "openstack_networking_secgroup_v2" "{{.Name}}" {
+  name = "{{.Name}}"
+}
+{{if .Rules -}}
+{{- $SecgroupName := .Name -}}
+{{- range .Rules}}
+resource "openstack_networking_secgroup_rule_v2" "{{.SourceSecuritygroup}}_to_{{$SecgroupName}}_on_{{.DestinationPort}}" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "{{.Proto}}"
+  port_range_min    = {{.DestinationPort}}
+  port_range_max    = {{.DestinationPort}}
+{{if eq .DestinationSecuritygroup ""}}  remote_ip_prefix  = "{{.DestinationAddr}}"{{else}}  remote_group_id   = "{{.SourceSecuritygroup}}"{{end}}
+  security_group_id = "${openstack_networking_secgroup_v2.{{$SecgroupName}}.id}"
+}{{end}}{{end}}
+`
+
 func network(config *config.Cell) (*bytes.Buffer, error) {
 
 	var networks bytes.Buffer
@@ -106,6 +124,20 @@ func router_interface(config *config.Cell) (*bytes.Buffer, error) {
 	}
 
 	return &routers_interfaces, nil
+}
+
+func securitygroup(config *config.Cell) (*bytes.Buffer, error) {
+	var securitygroups bytes.Buffer
+
+	for _, secgroup := range config.Securitygroups {
+		s, err := utils.Template(secgroup_resource_tmpl, secgroup)
+		if err != nil {
+			return nil, err
+		}
+		securitygroups.Write(s.Bytes())
+
+	}
+	return &securitygroups, nil
 }
 
 func subnet(config *config.Cell) (*bytes.Buffer, error) {
