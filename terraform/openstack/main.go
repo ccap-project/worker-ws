@@ -88,6 +88,11 @@ func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) er
 		return (err)
 	}
 
+	securitygroup, err := securitygroup(cell)
+	if err != nil {
+		return (err)
+	}
+
 	keypair, err := keypair(cell)
 	if err != nil {
 		return (err)
@@ -103,6 +108,7 @@ func (o *Openstack) Serialize(system *config.SystemConfig, cell *config.Cell) er
 	tf.Write(router_interface.Bytes())
 	tf.Write(network.Bytes())
 	tf.Write(subnet.Bytes())
+	tf.Write(securitygroup.Bytes())
 	tf.Write(keypair.Bytes())
 	tf.Write(instance.Bytes())
 
