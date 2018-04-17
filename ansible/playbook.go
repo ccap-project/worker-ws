@@ -115,6 +115,9 @@ func playbook(cell *config.Cell) (*bytes.Buffer, error) {
 	// Ensure ordering when specified
 	sort.Sort(config.HostgroupByOrder{cell.Hostgroups})
 
+	// Ensure ordering when specified
+	sort.Sort(config.HostgroupByOrder{cell.Hostgroups})
+
 	p, err := utils.Template(play_tmpl, cell.Hostgroups)
 	if err != nil {
 		return nil, err
