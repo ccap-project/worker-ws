@@ -51,7 +51,7 @@ resource "openstack_compute_instance_v2" "{{.Name}}" {
   flavor_name = "{{.Flavor}}"
   #key_pair = "${var.keypair}",
   #floating_ip = "${openstack_compute_floatingip_v2.tf-ds-float-ip.address}"
-  security_groups = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}{{.}}{{end}} ]
+  security_groups = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"{{.}}"{{end}} ]
   network {
     {{if ne .NetworkUUIDByName ""}}uuid = "${openstack_networking_network_v2.{{.Network}}.id}"{{else}}name = "{{.Network}}"{{end}}
   }

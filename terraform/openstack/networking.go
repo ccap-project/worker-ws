@@ -34,6 +34,40 @@ import "bytes"
 import "worker-ws/config"
 import "worker-ws/utils"
 
+const loadbalancer_resource_tmpl = `
+resource "openstack_lb_monitor_v1" "monitor_{{.Name}}" {
+  type = "{{.Protocol}}"
+  delay = 30
+  timeout = 5
+  max_retries = 3
+  admin_state_up = "true"
+}
+
+resource "openstack_lb_pool_v1" "pool_{{.Name}}" {
+  name = "pool_{{.Name}}"
+  protocol = "{{.Protocol}}"
+  #subnet_id = "${openstack_networking_subnet_v2.subnet-web.id}"
+  lb_method = "{{.Algorithm}}"
+  monitor_ids = ["${openstack_lb_monitor_v1.monitor_{{.Name}}.id}"]
+}
+
+resource "openstack_lb_member_v1" "members_{{.Name}}" {
+  count   = "${length(join(",", openstack_compute_instance_v2.{{.Members}}.*.id))}"
+  pool_id = "${openstack_lb_pool_v1.pool_{{.Name}}.id}"
+  address = "${element(openstack_compute_instance_v2.{{.Members}}.*.network.0.fixed_ip_v4, count.index)}"
+  port    = {{.Port}}
+}
+
+resource "openstack_lb_vip_v1" "vip_{{.Name}}" {
+  name        = "vip_1"
+  #subnet_id   = "${openstack_networking_subnet_v2.subnet-web.id}"
+  protocol    = "{{.Protocol}}"
+  port        = {{.Port}}
+  pool_id     = "${openstack_lb_pool_v1.pool_{{.Name}}.id}"
+  #floating_ip = "${openstack_compute_floatingip_v2.web_public_ip.address}"
+}
+`
+
 const network_resource_tmpl = `
 resource "openstack_networking_network_v2" "{{.Name}}" {
   name = "{{.Name}}"
@@ -80,6 +114,21 @@ resource "openstack_networking_secgroup_rule_v2" "{{.SourceSecuritygroup}}_to_{{
   security_group_id = "${openstack_networking_secgroup_v2.{{$SecgroupName}}.id}"
 }{{end}}{{end}}
 `
+
+func loadbalancer(config *config.Cell) (*bytes.Buffer, error) {
+
+	var loadbalancer bytes.Buffer
+
+	for _, lb := range config.Loadbalancers {
+		n, err := utils.Template(loadbalancer_resource_tmpl, lb)
+		if err != nil {
+			return nil, err
+		}
+		loadbalancer.Write(n.Bytes())
+	}
+
+	return &loadbalancer, nil
+}
 
 func network(config *config.Cell) (*bytes.Buffer, error) {
 

@@ -123,6 +123,17 @@ func (s HostgroupByOrder) Less(i, j int) bool {
 	return s.Hostgroups[i].Order < s.Hostgroups[j].Order
 }
 
+type Loadbalancer struct {
+	Algorithm             *string `json:"algorithm"`
+	ConnectionDrain       string  `json:"connection_drain,omitempty"`
+	ConnectionIDLETimeout int64   `json:"connection_idle_timeout,omitempty"`
+	Members               string  `json:"members"`
+	Name                  *string `json:"name"`
+	Port                  *int64  `json:"port"`
+	Protocol              *string `json:"protocol"`
+	Type                  string  `json:"type,omitempty"`
+}
+
 type Network struct {
 	Name       string `json:"name"`
 	AdminState string `json:"admin_state"`
@@ -171,6 +182,7 @@ type Cell struct {
 	KeyPair           *KeyPair           `json:"keypair"`
 	Hosts             []*Host            `json:"hosts"`
 	Hostgroups        []*Hostgroup       `json:"hostgroups"`
+	Loadbalancers     []*Loadbalancer    `json:"loadbalancers"`
 	Networks          []*Network         `json:"networks"`
 	Subnets           []*Subnet          `json:"subnets"`
 	Routers           []*Router          `json:"routers"`
