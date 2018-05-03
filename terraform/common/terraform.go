@@ -38,7 +38,19 @@ import (
 
 func Apply(SystemConfig *config.SystemConfig, cell *config.Cell) (*[]byte, error) {
 
-	out, err := utils.RunCmd(cell.Environment.Terraform.Dir, cell.Environment.Terraform.Env, SystemConfig.Commands.Terraform, "apply", cell.Environment.Terraform.Dir)
+	out, err := utils.RunCmd(cell.Environment.Terraform.Dir, cell.Environment.Terraform.Env, SystemConfig.Commands.Terraform, "apply", "-auto-approve", cell.Environment.Terraform.Dir)
+
+	if err != nil {
+		return nil, fmt.Errorf("%v, %s", err, out)
+	}
+
+	return out, nil
+}
+
+func InstallProviders(SystemConfig *config.SystemConfig, cell *config.Cell) (*[]byte, error) {
+
+	fmt.Printf("%s %s %s init %s", cell.Environment.Terraform.Dir, cell.Environment.Terraform.Env, SystemConfig.Commands.Terraform, "init", cell.Environment.Terraform.Dir)
+	out, err := utils.RunCmd(cell.Environment.Terraform.Dir, cell.Environment.Terraform.Env, SystemConfig.Commands.Terraform, "init", cell.Environment.Terraform.Dir)
 
 	if err != nil {
 		return nil, fmt.Errorf("%v, %s", err, out)
