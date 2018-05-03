@@ -46,13 +46,13 @@ resource "openstack_lb_monitor_v1" "monitor_{{.Name}}" {
 resource "openstack_lb_pool_v1" "pool_{{.Name}}" {
   name = "pool_{{.Name}}"
   protocol = "{{.Protocol}}"
-  #subnet_id = "${openstack_networking_subnet_v2.subnet-web.id}"
+  subnet_id = "${openstack_networking_network_v2.{{.Network}}.id}"
   lb_method = "{{.Algorithm}}"
   monitor_ids = ["${openstack_lb_monitor_v1.monitor_{{.Name}}.id}"]
 }
 
 resource "openstack_lb_member_v1" "members_{{.Name}}" {
-  count   = "${length(join(",", openstack_compute_instance_v2.{{.Members}}.*.id))}"
+  count   = "${var.instance_{{.Members}}_counter}"
   pool_id = "${openstack_lb_pool_v1.pool_{{.Name}}.id}"
   address = "${element(openstack_compute_instance_v2.{{.Members}}.*.network.0.fixed_ip_v4, count.index)}"
   port    = {{.Port}}
@@ -60,7 +60,7 @@ resource "openstack_lb_member_v1" "members_{{.Name}}" {
 
 resource "openstack_lb_vip_v1" "vip_{{.Name}}" {
   name        = "vip_1"
-  #subnet_id   = "${openstack_networking_subnet_v2.subnet-web.id}"
+  subnet_id   = "${openstack_networking_network_v2.{{.Network}}.id}"
   protocol    = "{{.Protocol}}"
   port        = {{.Port}}
   pool_id     = "${openstack_lb_pool_v1.pool_{{.Name}}.id}"
@@ -91,7 +91,7 @@ resource "openstack_networking_router_interface_v2" "{{.Name}}" {
 const subnet_resource_tmpl = `
 resource "openstack_networking_subnet_v2" "{{.Name}}" {
   name = "{{.Name}}"
-  network_id = "${openstack_networking_network_v2.{{.Network}}.id}"
+  network_id = "${openstack_networking_network_v2.{{.Name}}.id}"
 {{if ne .Cidr "" }}  cidr = "{{.Cidr}}"{{end -}}
 {{if ne .IPVersion "" }}  ip_version = "{{.IPVersion}}" {{end}}
 }
@@ -193,8 +193,8 @@ func subnet(config *config.Cell) (*bytes.Buffer, error) {
 
 	var subnets bytes.Buffer
 
-	for _, subnet := range config.Subnets {
-		s, err := utils.Template(subnet_resource_tmpl, subnet)
+	for _, net := range config.Networks {
+		s, err := utils.Template(subnet_resource_tmpl, net)
 		if err != nil {
 			return nil, err
 		}
