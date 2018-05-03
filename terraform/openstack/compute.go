@@ -44,6 +44,10 @@ resource "openstack_compute_keypair_v2" "{{.Name}}" {
 `
 
 const instance_resource_tmpl = `
+variable "instance_{{.Name}}_counter" {
+  default = "{{.Count}}"
+}
+
 resource "openstack_compute_instance_v2" "{{.Name}}" {
   count = "{{.Count}}"
   name = "${format("{{.Name}}%d", count.index + 1)}"

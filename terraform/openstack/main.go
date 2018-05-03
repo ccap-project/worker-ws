@@ -42,6 +42,7 @@ import (
 type Openstack struct{}
 
 const provider_resource_tmpl = `provider "openstack" {
+  version = "= 1.3.0"
   user_name  = "{{.Username}}"
   tenant_name = "{{.TenantName}}"
   password  = "{{.Password}}"

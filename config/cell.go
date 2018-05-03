@@ -129,6 +129,7 @@ type Loadbalancer struct {
 	ConnectionIDLETimeout int64   `json:"connection_idle_timeout,omitempty"`
 	Members               string  `json:"members"`
 	Name                  *string `json:"name"`
+	Network               *string `json:"network"`
 	Port                  *int64  `json:"port"`
 	Protocol              *string `json:"protocol"`
 	Type                  string  `json:"type,omitempty"`
@@ -137,6 +138,8 @@ type Loadbalancer struct {
 type Network struct {
 	Name       string `json:"name"`
 	AdminState string `json:"admin_state"`
+	Cidr       string `json:"cidr,omitempty"`
+	IPVersion  string `json:"ip_version,omitempty"`
 }
 
 type Router struct {
@@ -184,7 +187,6 @@ type Cell struct {
 	Hostgroups        []*Hostgroup       `json:"hostgroups"`
 	Loadbalancers     []*Loadbalancer    `json:"loadbalancers"`
 	Networks          []*Network         `json:"networks"`
-	Subnets           []*Subnet          `json:"subnets"`
 	Routers           []*Router          `json:"routers"`
 	RoutersInterfaces []*RouterInterface `json:"routers_interfaces"`
 	Securitygroups    []*Securitygroup   `json:"securitygroups"`

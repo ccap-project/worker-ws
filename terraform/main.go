@@ -33,6 +33,8 @@ import (
 	"fmt"
 
 	"worker-ws/config"
+	terraformcommon "worker-ws/terraform/common"
+
 	"worker-ws/terraform/openstack"
 )
 
@@ -65,6 +67,10 @@ func Check(ctx *config.RequestContext) error {
 		return fmt.Errorf("Failure serializing Terraform Openstack file, %v", err)
 	}
 
+	if _, err := terraformcommon.InstallProviders(ctx.SystemConfig, ctx.Cell); err != nil {
+		return fmt.Errorf("Failure installing Terraform Providers, %v", err)
+	}
+
 	ctx.Log.Debug("Validating")
 	if err := Env.Validate(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure validating Terraform file, %v", err)
@@ -84,6 +90,10 @@ func Deploy(ctx *config.RequestContext) error {
 	ctx.Log.Debug("Serializing")
 	if err := Env.Serialize(ctx.SystemConfig, ctx.Cell); err != nil {
 		return fmt.Errorf("Failure serializing Terraform Openstack file, %v", err)
+	}
+
+	if _, err := terraformcommon.InstallProviders(ctx.SystemConfig, ctx.Cell); err != nil {
+		return fmt.Errorf("Failure installing Terraform Providers, %v", err)
 	}
 
 	ctx.Log.Debug("Validating")
