@@ -104,6 +104,7 @@ func initialize(ctx *config.RequestContext, RepoType string) (*config.RepoEnv, e
 
 	case "terraform":
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("TF_LOG=%s", "INFO"))
+		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("TF_PLUGIN_CACHE_DIR=/tmp/terraform-plugin-cache"))
 		RepoEnv.Env = append(RepoEnv.Env, fmt.Sprintf("TF_LOG_PATH=%s/log", RepoEnv.Dir))
 	}
 
