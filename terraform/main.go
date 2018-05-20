@@ -35,6 +35,7 @@ import (
 	"worker-ws/config"
 	terraformcommon "worker-ws/terraform/common"
 
+	"worker-ws/terraform/aws"
 	"worker-ws/terraform/openstack"
 )
 
@@ -47,8 +48,12 @@ type Terraform interface {
 
 func Init(provider string) Terraform {
 
-	if provider == "Openstack" {
+	switch provider {
+	case "Openstack":
 		return &openstack.Openstack{}
+
+	case "AWS":
+		return &aws.AWS{}
 	}
 
 	return nil

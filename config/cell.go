@@ -51,9 +51,11 @@ type CustomerEnv struct {
  * Bellow json received data
  */
 type Provider struct {
+	AccessKey  string `json:"access_key"`
 	Name       string `json:"name"`
 	DomainName string `json:"domain_name"`
 	Region     string `json:"region"`
+	SecretKey  string `json:"secret_key"`
 	TenantName string `json:"tenant_name"`
 	Type       string `json:"type"`
 	Username   string `json:"username"`
@@ -145,6 +147,7 @@ type Network struct {
 type Router struct {
 	Name       string `json:"name"`
 	AdminState string `json:"admin_state"`
+	Cidr       string `json:"cidr,omitempty"`
 }
 
 type RouterInterface struct {
