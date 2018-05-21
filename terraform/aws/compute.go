@@ -50,11 +50,13 @@ variable "instance_{{.Name}}_counter" {
 
 resource "aws_instance" "{{.Name}}" {
   count = "{{.Count}}"
-  #name = "${format("{{.Name}}%d", count.index + 1)}"
   ami = "{{.Image}}"
   instance_type = "{{.Flavor}}"
   vpc_security_group_ids = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
   subnet_id = "${aws_subnet.{{.Network}}.id}"
+  tags {
+    name = "${format("{{.Name}}%d", count.index + 1)}"
+  }
 
   {{if ne .KeyPair "" }}key_name = "{{.KeyPair}}"{{end}}
   provisioner "remote-exec" {
