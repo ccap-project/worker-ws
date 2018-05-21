@@ -52,7 +52,7 @@ func (o *AWS) ReadState(cell *config.Cell, file string) error {
 
 				host.Name = rv.Primary.Attributes["name"]
 				option.Name = "ansible_host"
-				option.Value = rv.Primary.Attributes["access_ip_v4"]
+				option.Value = rv.Primary.Attributes["private_ip"]
 
 				host.Options = append(host.Options, option)
 				cell.Hosts = append(cell.Hosts, host)
