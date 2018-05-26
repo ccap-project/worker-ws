@@ -98,7 +98,7 @@ type Hostgroup struct {
 	Image             string      `json:"image"`
 	KeyPair           string      `json:"key_pair"`
 	Count             json.Number `json:"count,Number"`
-	Network           string      `json:"network"`
+	Network           []string    `json:"network"`
 	NetworkUUIDByName string      `json:"network_uuid_by_name"`
 	Username          string      `json:"username"`
 	Component         string      `json:"component"`
