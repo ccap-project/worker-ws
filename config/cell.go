@@ -126,15 +126,16 @@ func (s HostgroupByOrder) Less(i, j int) bool {
 }
 
 type Loadbalancer struct {
-	Algorithm             *string `json:"algorithm"`
-	ConnectionDrain       string  `json:"connection_drain,omitempty"`
-	ConnectionIDLETimeout int64   `json:"connection_idle_timeout,omitempty"`
-	Members               string  `json:"members"`
-	Name                  *string `json:"name"`
-	Network               *string `json:"network"`
-	Port                  *int64  `json:"port"`
-	Protocol              *string `json:"protocol"`
-	Type                  string  `json:"type,omitempty"`
+	Algorithm             *string  `json:"algorithm"`
+	ConnectionDrain       string   `json:"connection_drain,omitempty"`
+	ConnectionIDLETimeout int64    `json:"connection_idle_timeout,omitempty"`
+	Members               string   `json:"members"`
+	Name                  *string  `json:"name"`
+	Network               []string `json:"network"`
+	Port                  *int64   `json:"port"`
+	Protocol              *string  `json:"protocol"`
+	Type                  string   `json:"type,omitempty"`
+	Securitygroups        []string `json:"securitygroups"`
 }
 
 type Network struct {
@@ -142,6 +143,7 @@ type Network struct {
 	AdminState string `json:"admin_state"`
 	Cidr       string `json:"cidr,omitempty"`
 	IPVersion  string `json:"ip_version,omitempty"`
+	RegionAz   string `json:"region_az"`
 }
 
 type Router struct {
