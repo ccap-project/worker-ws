@@ -31,6 +31,7 @@ package aws
 
 import (
 	"bytes"
+	"sort"
 
 	"worker-ws/config"
 	"worker-ws/utils"
@@ -53,7 +54,7 @@ resource "aws_instance" "{{.Name}}" {
   ami = "{{.Image}}"
   instance_type = "{{.Flavor}}"
   vpc_security_group_ids = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
-  subnet_id = "${aws_subnet.{{.Network}}.id}"
+  subnet_id = "${aws_subnet.{{ (index .Network 0)}}.id}"
   tags {
     name = "${format("{{.Name}}%d", count.index + 1)}"
   }
@@ -76,7 +77,12 @@ func instance(config *config.Cell) (*bytes.Buffer, error) {
 	var instances bytes.Buffer
 
 	for _, h := range config.Hostgroups {
+
+		// Ensure ordering when specified
+		sort.Strings(h.Network)
+
 		h.KeyPair = config.KeyPair.Name
+
 		i, err := utils.Template(instance_resource_tmpl, h)
 		if err != nil {
 			return nil, err
