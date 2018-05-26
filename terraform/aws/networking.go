@@ -35,43 +35,41 @@ import "worker-ws/config"
 import "worker-ws/utils"
 
 const loadbalancer_resource_tmpl = `
-resource "openstack_lb_pool_v1" "pool_{{.Name}}" {
-  name = "pool_{{.Name}}"
-  protocol = "{{.Protocol}}"
-  subnet_id = "${openstack_networking_network_v2.{{.Network}}.id}"
-  lb_method = "{{.Algorithm}}"
-  monitor_ids = ["${openstack_lb_monitor_v1.monitor_{{.Name}}.id}"]
+resource "aws_lb" "{{.Name}}" {
+  name            = "{{.Name}}"
+  security_groups = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
+  subnets = [ {{range $idx, $v := .Network}}{{if $idx}},{{end}}"${aws_subnet.{{.}}.id}"{{end}} ]
 }
 
-resource "aws_lb" "lb_{{.Name}}" {
-  name            = "lb_{{.Name}}"
-  #security_groups = [ "${aws_subnet.{{.Network}}.id}" ]
-  subnets         = [ "${aws_subnet.{{.Network}}.id}" ]
-}
-
-resource "aws_lb_listener" "lb_listener_{{.Name}}" {
-  load_balancer_arn   = "${aws_lb.lb_{{.Name}}.arn}"
-  port                = "{{.Port}}"
-  protocol            = "{{.Protocol}}"
-  # ssl_policy
-  # certificate_arn
-  default_action {
-    target_group_arn = ""
-    type             = "forward"
-  }
-}
-
-resource "aws_lb_target_group" "lb_target_group_{{.Name}}" {
-  name        = "lb_target_group_{{.Name}}"
+resource "aws_lb_target_group" "{{.Name}}" {
+  name        = "{{.Name}}"
   port        = {{.Port}}
   protocol    = "{{.Protocol}}"
-  #vpc_id      =
+  vpc_id     = "${aws_default_vpc.default.id}"
   #health_check {
   #  type
   #}
   #stickiness {
   #
   #}
+}
+
+resource "aws_lb_listener" "{{.Name}}" {
+  load_balancer_arn   = "${aws_lb.{{.Name}}.arn}"
+  port                = "{{.Port}}"
+  protocol            = "{{.Protocol}}"
+  # ssl_policy
+  # certificate_arn
+  default_action {
+    target_group_arn = "${aws_lb_target_group.{{.Name}}.arn}"
+    type             = "forward"
+  }
+}
+
+resource "aws_alb_target_group_attachment" "{{.Name}}" {
+  count = "${var.instance_{{.Members}}_counter}"
+  target_group_arn = "${aws_lb_target_group.{{.Name}}.arn}"
+  target_id        =  "${element(aws_instance.{{.Members}}.*.id, count.index)}"
 }
 `
 
@@ -85,6 +83,7 @@ const subnet_resource_tmpl = `
 resource "aws_subnet" "{{.Name}}" {
   vpc_id     = "${aws_default_vpc.default.id}"
   cidr_block = "{{.Cidr}}"
+  availability_zone = "{{.RegionAz}}"
 }
 `
 
@@ -100,7 +99,7 @@ resource "aws_security_group_rule" "{{.SourceSecuritygroup}}_to_{{$SecgroupName}
   protocol     = "{{.Proto}}"
   from_port    = {{.DestinationPort}}
   to_port      = {{.DestinationPort}}
-{{if eq .DestinationSecuritygroup ""}}  cidr_blocks  = "{{.DestinationAddr}}"{{else}}  source_security_group_id   = "{{.SourceSecuritygroup}}"{{end}}
+{{if eq .DestinationSecuritygroup ""}}  cidr_blocks  = "{{.DestinationAddr}}"{{else}}  source_security_group_id   = "${aws_security_group.{{.SourceSecuritygroup}}.id}"{{end}}
   security_group_id = "${aws_security_group.{{$SecgroupName}}.id}"
 }{{end}}{{end}}
 `
