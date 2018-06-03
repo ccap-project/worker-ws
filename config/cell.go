@@ -97,7 +97,6 @@ type Hostgroup struct {
 	Flavor            string      `json:"flavor"`
 	Image             string      `json:"image"`
 	KeyPair           string      `json:"key_pair"`
-	Count             json.Number `json:"count,Number"`
 	Network           []string    `json:"network"`
 	NetworkUUIDByName string      `json:"network_uuid_by_name"`
 	Username          string      `json:"username"`
@@ -106,6 +105,12 @@ type Hostgroup struct {
 	Order             json.Number `json:"order"`
 	Roles             []*Role     `json:"roles"`
 	Securitygroups    []string    `json:"securitygroups"`
+
+	DesiredSize      int64 `json:"desired_size,Number"`
+	MaxSize          int64 `json:"max_size,Number"`
+	MinSize          int64 `json:"min_size,Number"`
+	WaitForInstances bool  `json:"wait_for_instances"`
+	CooldownInterval int64 `json:"cooldown_interval"`
 }
 
 type Hostgroups []*Hostgroup
