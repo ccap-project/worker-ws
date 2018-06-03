@@ -46,11 +46,49 @@ resource "aws_key_pair" "{{.Name}}" {
 
 const instance_resource_tmpl = `
 variable "instance_{{.Name}}_counter" {
-  default = "{{.Count}}"
+  default = "{{.DesiredSize}}"
 }
 
+{{if gt .MaxSize 0 -}}
+#
+# Autoscale Configuration
+#
+resource "aws_launch_configuration" "{{.Name}}" {
+  name_prefix   = "{{.Name}}"
+  image_id      = "{{.Image}}"
+  instance_type = "{{.Flavor}}"
+  vpc_security_group_ids = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
+  {{if ne .KeyPair "" }}key_name = "{{.KeyPair}}"{{end}}
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_policy" "{{.Name}}" {
+  name                   = "{{.Name}}"
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = {{if le .CooldownInterval 0}}300{{else}}{{.CooldownInterval}}{{end}}
+  autoscaling_group_name = "${aws_autoscaling_group.{{.Name}}.name}"
+}
+
+resource "aws_autoscaling_group" "{{.Name}}" {
+  availability_zones        = ["us-east-1a"]
+  name                      = "{{.Name}}"
+  max_size                  = {{.MaxSize}}
+  min_size                  = {{.MinSize}}
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.{{.Name}}.name}"
+}
+
+{{else -}}
+#
+# Compute Instances Configuration
+#
 resource "aws_instance" "{{.Name}}" {
-  count = "{{.Count}}"
+  count = "{{.DesiredSize}}"
   ami = "{{.Image}}"
   instance_type = "{{.Flavor}}"
   vpc_security_group_ids = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
@@ -70,6 +108,7 @@ resource "aws_instance" "{{.Name}}" {
     }
   }
 }
+{{end}}
 `
 
 func instance(config *config.Cell) (*bytes.Buffer, error) {
