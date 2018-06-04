@@ -134,7 +134,7 @@ type Loadbalancer struct {
 	Algorithm             *string  `json:"algorithm"`
 	ConnectionDrain       string   `json:"connection_drain,omitempty"`
 	ConnectionIDLETimeout int64    `json:"connection_idle_timeout,omitempty"`
-	Members               string   `json:"members"`
+	Members               []string `json:"members"`
 	Name                  *string  `json:"name"`
 	Network               []string `json:"network"`
 	Port                  *int64   `json:"port"`
