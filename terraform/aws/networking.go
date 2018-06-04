@@ -35,12 +35,18 @@ import "worker-ws/config"
 import "worker-ws/utils"
 
 const loadbalancer_resource_tmpl = `
+#
+# Load Balancer Configuration
+#
+
+# XXX: enable choose type application/network
 resource "aws_lb" "{{.Name}}" {
   name            = "{{.Name}}"
   security_groups = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
   subnets = [ {{range $idx, $v := .Network}}{{if $idx}},{{end}}"${aws_subnet.{{.}}.id}"{{end}} ]
 }
 
+# XXX: while only enable application lb, we need target_group
 resource "aws_lb_target_group" "{{.Name}}" {
   name        = "{{.Name}}"
   port        = {{.Port}}
@@ -66,20 +72,27 @@ resource "aws_lb_listener" "{{.Name}}" {
   }
 }
 
-resource "aws_alb_target_group_attachment" "{{.Name}}" {
-  count = "${var.instance_{{.Members}}_counter}"
-  target_group_arn = "${aws_lb_target_group.{{.Name}}.arn}"
-  target_id        =  "${element(aws_instance.{{.Members}}.*.id, count.index)}"
-}
+{{- $LbName := .Name -}}
+{{- range .Members}}
+resource "aws_autoscaling_attachment" "{{.}}" {
+  autoscaling_group_name = "${aws_autoscaling_group.{{.}}.id}"
+  alb_target_group_arn   = "${aws_lb_target_group.{{$LbName}}.arn}"
+}{{end}}
 `
 
 const vpc_resource_tmpl = `
+#
+# VPC Configuration
+#
 resource "aws_vpc" "{{.Name}}" {
   cidr_block = "{{.Cidr}}"
 }
 `
 
 const subnet_resource_tmpl = `
+#
+# Subnet Configuration
+#
 resource "aws_subnet" "{{.Name}}" {
   vpc_id     = "${aws_default_vpc.default.id}"
   cidr_block = "{{.Cidr}}"
@@ -88,6 +101,10 @@ resource "aws_subnet" "{{.Name}}" {
 `
 
 const secgroup_resource_tmpl = `
+#
+# SecurityGroup Configuration
+#
+
 resource "aws_security_group" "{{.Name}}" {
   name = "{{.Name}}"
 }

@@ -53,8 +53,8 @@ variable "instance_{{.Name}}_counter" {
 #
 # Autoscale Configuration
 #
-resource "aws_launch_configuration" "{{.Name}}" {
-  name_prefix   = "{{.Name}}"
+resource "aws_launch_template" "{{.Name}}" {
+  name          = "{{.Name}}"
   image_id      = "{{.Image}}"
   instance_type = "{{.Flavor}}"
   vpc_security_group_ids = [ {{range $idx, $v := .Securitygroups}}{{if $idx}},{{end}}"${aws_security_group.{{.}}.id}"{{end}} ]
@@ -73,14 +73,17 @@ resource "aws_autoscaling_policy" "{{.Name}}" {
 }
 
 resource "aws_autoscaling_group" "{{.Name}}" {
-  availability_zones        = ["us-east-1a"]
+  vpc_zone_identifier        = [ {{range $idx, $v := .Network}}{{if $idx}},{{end}}"${aws_subnet.{{.}}.id}"{{end}} ]
   name                      = "{{.Name}}"
   max_size                  = {{.MaxSize}}
   min_size                  = {{.MinSize}}
   health_check_grace_period = 300
   health_check_type         = "ELB"
   force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.{{.Name}}.name}"
+  launch_template           = {
+    id      = "${aws_launch_template.{{.Name}}.id}"
+    version = "$$Latest"
+  }
 }
 
 {{else -}}
