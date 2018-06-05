@@ -47,7 +47,7 @@ const hostTmpl = `{{range .}}{{.Name}}{{if .Options}}{{range .Options}} {{.Name}
 `
 
 const hostgroupTmpl = `{{range .}}[{{.Name}}]
-{{.Name}}[1:{{.Count}}]
+{{.Name}}[1:{{.DesiredSize}}]
 {{end}}
 `
 
