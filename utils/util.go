@@ -35,6 +35,7 @@ import (
 	"math/rand"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"text/template"
 	"time"
 
@@ -90,4 +91,24 @@ func GetULID() (ulid.ULID, error) {
 	entropy := rand.New(rand.NewSource(t.UnixNano()))
 
 	return ulid.New(ulid.Timestamp(t), entropy)
+}
+
+func Grep(val interface{}, array interface{}) (exists bool, index int) {
+	exists = false
+	index = -1
+
+	switch reflect.TypeOf(array).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(array)
+
+		for i := 0; i < s.Len(); i++ {
+			if reflect.DeepEqual(val, s.Index(i).Interface()) == true {
+				index = i
+				exists = true
+				return
+			}
+		}
+	}
+
+	return
 }
