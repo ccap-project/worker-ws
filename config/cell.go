@@ -168,8 +168,9 @@ type RouterInterface struct {
 }
 
 type Securitygroup struct {
-	Name  string                `json:"name"`
-	Rules []*SecuritygroupRules `json:"rules"`
+	Name   string                `json:"name"`
+	Rules  []*SecuritygroupRules `json:"rules"`
+	Router string                `json:"router"`
 }
 
 type SecuritygroupRules struct {

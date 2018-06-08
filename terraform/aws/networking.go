@@ -102,6 +102,7 @@ const secgroup_resource_tmpl = `
 
 resource "aws_security_group" "{{.Name}}" {
   name = "{{.Name}}"
+  vpc_id = "${aws_vpc.{{.Router}}.id}"
 }
 {{if .Rules -}}
 {{- $SecgroupName := .Name -}}
