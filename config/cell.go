@@ -140,6 +140,7 @@ type Loadbalancer struct {
 	Port                  *int64   `json:"port"`
 	Protocol              *string  `json:"protocol"`
 	Type                  string   `json:"type,omitempty"`
+	Router                string   `json:"router"`
 	Securitygroups        []string `json:"securitygroups"`
 }
 
@@ -149,12 +150,15 @@ type Network struct {
 	Cidr       string `json:"cidr,omitempty"`
 	IPVersion  string `json:"ip_version,omitempty"`
 	RegionAz   string `json:"region_az"`
+	Router     string `json:"router"`
 }
 
 type Router struct {
-	Name       string `json:"name"`
-	AdminState string `json:"admin_state"`
-	Cidr       string `json:"cidr,omitempty"`
+	Name              string `json:"name"`
+	AdminState        string `json:"admin_state"`
+	Cidr              string `json:"cidr"`
+	EnableDNS         bool   `json:"enable_dns"`
+	EnableDNSHostname bool   `json:"enable_dns_hostname"`
 }
 
 type RouterInterface struct {
