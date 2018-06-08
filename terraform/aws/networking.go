@@ -29,10 +29,12 @@
 
 package aws
 
-import "bytes"
-
-import "worker-ws/config"
-import "worker-ws/utils"
+import (
+	"bytes"
+	"sort"
+	"worker-ws/config"
+	"worker-ws/utils"
+)
 
 const loadbalancer_resource_tmpl = `
 #
@@ -51,7 +53,7 @@ resource "aws_lb_target_group" "{{.Name}}" {
   name        = "{{.Name}}"
   port        = {{.Port}}
   protocol    = "{{.Protocol}}"
-  vpc_id     = "${aws_default_vpc.default.id}"
+  vpc_id      = "${aws_vpc.{{.Router}}.id}"
   #health_check {
   #  type
   #}
@@ -71,7 +73,9 @@ resource "aws_lb_listener" "{{.Name}}" {
     type             = "forward"
   }
 }
+`
 
+const loadbalancer_autoscaling_attachment_resource_tmpl = `
 {{- $LbName := .Name -}}
 {{- range .Members}}
 resource "aws_autoscaling_attachment" "{{.}}" {
@@ -80,21 +84,12 @@ resource "aws_autoscaling_attachment" "{{.}}" {
 }{{end}}
 `
 
-const vpc_resource_tmpl = `
-#
-# VPC Configuration
-#
-resource "aws_vpc" "{{.Name}}" {
-  cidr_block = "{{.Cidr}}"
-}
-`
-
 const subnet_resource_tmpl = `
 #
 # Subnet Configuration
 #
 resource "aws_subnet" "{{.Name}}" {
-  vpc_id     = "${aws_default_vpc.default.id}"
+  vpc_id     = "${aws_vpc.{{.Router}}.id}"
   cidr_block = "{{.Cidr}}"
   availability_zone = "{{.RegionAz}}"
 }
@@ -107,6 +102,7 @@ const secgroup_resource_tmpl = `
 
 resource "aws_security_group" "{{.Name}}" {
   name = "{{.Name}}"
+  vpc_id = "${aws_vpc.{{.Router}}.id}"
 }
 {{if .Rules -}}
 {{- $SecgroupName := .Name -}}
@@ -121,16 +117,47 @@ resource "aws_security_group_rule" "{{.SourceSecuritygroup}}_to_{{$SecgroupName}
 }{{end}}{{end}}
 `
 
+const vpc_resource_tmpl = `
+#
+# VPC Configuration
+#
+resource "aws_vpc" "{{.Name}}" {
+  cidr_block = "{{.Cidr}}"
+  {{ if not .EnableDNS }}{{else}}enable_dns_support   = "true"{{end}}
+  {{ if not .EnableDNSHostname }}{{else}}enable_dns_hostnames = "true"{{end}}
+  tags {
+    Name = "{{.Name}}"
+  }
+}
+`
+
 func loadbalancer(config *config.Cell) (*bytes.Buffer, error) {
 
 	var loadbalancer bytes.Buffer
 
 	for _, lb := range config.Loadbalancers {
+		sort.Strings(lb.Members)
 		n, err := utils.Template(loadbalancer_resource_tmpl, lb)
 		if err != nil {
 			return nil, err
 		}
 		loadbalancer.Write(n.Bytes())
+
+		// Check if autoscale is enable on lb members
+		for _, h := range config.Hostgroups {
+
+			if h.MaxSize > 0 {
+				exists, _ := utils.Grep(lb.Members, h.Name)
+				if exists {
+					n, err := utils.Template(loadbalancer_autoscaling_attachment_resource_tmpl, lb)
+					if err != nil {
+						return nil, err
+					}
+					loadbalancer.Write(n.Bytes())
+				}
+			}
+		}
+
 	}
 
 	return &loadbalancer, nil
