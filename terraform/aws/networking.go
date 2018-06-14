@@ -84,6 +84,16 @@ resource "aws_autoscaling_attachment" "{{.}}" {
 }{{end}}
 `
 
+const loadbalancer_target_group_attachment_resource_tmpl = `
+{{- $LbName := .Name -}}
+{{- range .Members}}
+resource "aws_lb_target_group_attachment" "{{.}}" {
+  count = "${var.instance_{{.Members}}_counter}"
+  target_group_arn = "${aws_lb_target_group.{{.Name}}.arn}"
+  target_id        =  "${element(aws_instance.{{.Members}}.*.id, count.index)}"
+}{{end}}
+`
+
 const subnet_resource_tmpl = `
 #
 # Subnet Configuration
@@ -146,10 +156,18 @@ func loadbalancer(config *config.Cell) (*bytes.Buffer, error) {
 		// Check if autoscale is enable on lb members
 		for _, h := range config.Hostgroups {
 
-			if h.MaxSize > 0 {
-				exists, _ := utils.Grep(lb.Members, h.Name)
-				if exists {
+			exists, _ := utils.Grep(lb.Members, h.Name)
+			if exists {
+				// Autoscale enabled
+				if h.MaxSize > 0 {
 					n, err := utils.Template(loadbalancer_autoscaling_attachment_resource_tmpl, lb)
+					if err != nil {
+						return nil, err
+					}
+					loadbalancer.Write(n.Bytes())
+
+				} else {
+					n, err := utils.Template(loadbalancer_target_group_attachment_resource_tmpl, lb)
 					if err != nil {
 						return nil, err
 					}
