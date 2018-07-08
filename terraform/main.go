@@ -36,6 +36,7 @@ import (
 	terraformcommon "worker-ws/terraform/common"
 
 	"worker-ws/terraform/aws"
+	"worker-ws/terraform/gcp"
 	"worker-ws/terraform/openstack"
 )
 
@@ -54,6 +55,9 @@ func Init(provider string) Terraform {
 
 	case "AWS":
 		return &aws.AWS{}
+
+	case "GCP":
+		return &gcp.GCP{}
 	}
 
 	return nil
